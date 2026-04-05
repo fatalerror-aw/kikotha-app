@@ -110,10 +110,8 @@ const css = `
     --font-bn:'Hind Siliguri','DM Sans',system-ui,sans-serif;
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-  body{background:#080808;display:flex;justify-content:center;min-height:100vh;font-family:var(--font-body);color:var(--cream);}
-.phone{width:100%;max-width:900px;min-height:100vh;background:var(--bg);border-radius:0;overflow:hidden;position:relative;box-shadow:none;margin:0 auto;display:flex;flex-direction:column;}
-.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:900px;}
-@media(max-width:768px){.phone{max-width:100%;}.bottom-nav{max-width:100%;left:0;transform:none;}}
+ body{background:var(--bg);display:flex;min-height:100vh;font-family:var(--font-body);color:var(--cream);}
+.phone{width:100%;min-height:100vh;background:var(--bg);border-radius:0;overflow:hidden;position:relative;box-shadow:none;margin:0;display:flex;flex-direction:column;}
   .status-bar{display:flex;justify-content:space-between;align-items:center;padding:14px 20px 10px;background:#0A0A0A;font-size:11px;font-weight:600;color:var(--cream2);flex-shrink:0;}
   .top-bar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:#0F0F0F;border-bottom:1px solid var(--border);flex-shrink:0;}
   .top-bar .logo{font-family:var(--font-display);font-size:20px;color:var(--gold);font-weight:700;}
@@ -124,10 +122,8 @@ const css = `
   .kotha-title{font-size:13px;font-weight:600;color:var(--gold);}
   .screen{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:80px;}
   .screen::-webkit-scrollbar{display:none;}
-  .bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:390px;height:72px;background:#0A0A0A;border-top:1px solid var(--border);display:flex;z-index:100;}
-  @media(max-width:430px){.bottom-nav{width:100vw;left:0;transform:none;}}
   .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;transition:all 0.2s;background:none;border:none;padding:0;}
-  .nav-item .nav-icon{font-size:18px;line-height:1;}
+.bottom-nav{position:fixed;bottom:0;left:0;width:100%;height:72px;background:#0A0A0A;border-top:1px solid var(--border);display:flex;z-index:100;}
   .nav-item .nav-label{font-size:9px;font-family:var(--font-bn);color:var(--muted);}
   .nav-item.active .nav-label{color:var(--gold);}
   .nav-dot{width:4px;height:4px;border-radius:50%;background:var(--gold);margin-top:1px;}
