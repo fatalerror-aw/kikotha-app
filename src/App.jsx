@@ -110,8 +110,8 @@ const css = `
     --font-bn:'Hind Siliguri','DM Sans',system-ui,sans-serif;
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
- body{background:var(--bg);display:flex;min-height:100vh;font-family:var(--font-body);color:var(--cream);}
-.phone{width:100%;min-height:100vh;background:var(--bg);border-radius:0;overflow:hidden;position:relative;box-shadow:none;margin:0;display:flex;flex-direction:column;}
+ body{background:var(--bg);min-height:100vh;font-family:var(--font-body);color:var(--cream);}
+.phone{width:100vw;min-height:100vh;background:var(--bg);border-radius:0;overflow:hidden;position:relative;box-shadow:none;margin:0;display:flex;flex-direction:column;}
   .status-bar{display:flex;justify-content:space-between;align-items:center;padding:14px 20px 10px;background:#0A0A0A;font-size:11px;font-weight:600;color:var(--cream2);flex-shrink:0;}
   .top-bar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:#0F0F0F;border-bottom:1px solid var(--border);flex-shrink:0;}
   .top-bar .logo{font-family:var(--font-display);font-size:20px;color:var(--gold);font-weight:700;}
