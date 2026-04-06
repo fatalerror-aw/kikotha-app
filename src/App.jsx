@@ -112,8 +112,7 @@ const css = `
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
  body{background:var(--bg);min-height:100vh;font-family:var(--font-body);color:var(--cream);}
 .phone{width:100vw;min-height:100vh;background:var(--bg);border-radius:0;overflow:hidden;position:relative;box-shadow:none;margin:0;display:flex;flex-direction:column;}
-  .status-bar{display:flex;justify-content:space-between;align-items:center;padding:14px 20px 10px;background:#0A0A0A;font-size:11px;font-weight:600;color:var(--cream2);flex-shrink:0;}
-  .top-bar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:#0F0F0F;border-bottom:1px solid var(--border);flex-shrink:0;}
+.top-bar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:#0F0F0F;border-bottom:1px solid var(--border);flex-shrink:0;}
   .top-bar .logo{font-family:var(--font-display);font-size:20px;color:var(--gold);font-weight:700;}
   .top-bar .logo span{font-family:var(--font-bn);font-size:13px;color:var(--cream2);margin-left:6px;font-weight:400;}
   .top-bar .actions{display:flex;gap:12px;align-items:center;}
@@ -252,12 +251,10 @@ async function askAI(question, lang) {
     ? "আপনি কি কথা প্ল্যাটফর্মের AI সহকারী। বাংলাদেশি প্রবাসীদের ইমিগ্রেশন, ভিসা এবং জিসিসি কর্মসংস্থান বিষয়ে সঠিক, সহায়ক তথ্য প্রদান করুন। সংক্ষিপ্ত উত্তর দিন। বলুন এটি শুধু তথ্যমূলক। বাংলায় উত্তর দিন।"
     : "You are the Ki Kotha AI assistant. Provide accurate helpful information to Bangladeshi diaspora about immigration, visas, GCC employment. Keep answers concise. Always note this is informational only, not legal advice.";
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await fetch("/api/chat", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": import.meta.env.VITE_ANTHROPIC_KEY,
-        "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-20250514",
@@ -307,12 +304,44 @@ export default function App() {
   const toggleSave = (id) => setSavedPosts(p => p.includes(id) ? p.filter(x=>x!==id) : [...p,id]);
   const toggleJoin = (kid) => setJoinedKothas(p => p.includes(kid) ? p.filter(x=>x!==kid) : [...p,kid]);
 
+  const NavIcon = ({ id, active }) => {
+    const c = active ? "var(--gold)" : "var(--muted)";
+    if (id === "home") return (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 9.5L12 3l9 6.5V21a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path d="M9 22V12h6v10"/>
+      </svg>
+    );
+    if (id === "feed") return (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+      </svg>
+    );
+    if (id === "communities") return (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="9" cy="7" r="3"/><circle cx="17" cy="9" r="2.5"/>
+        <path d="M2 20c0-3.3 3.1-6 7-6s7 2.7 7 6"/><path d="M17 14c2.2.4 4 2.1 4 4.5"/>
+      </svg>
+    );
+    if (id === "saved") return (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>
+      </svg>
+    );
+    if (id === "profile") return (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+      </svg>
+    );
+    return null;
+  };
+
   const navItems = [
-    { id:"home", icon:"⌂", label:tx.home },
-    { id:"feed", icon:"◎", label:tx.feed },
-    { id:"communities", icon:"⊞", label:tx.communities },
-    { id:"saved", icon:"♡", label:tx.saved },
-    { id:"profile", icon:"◉", label:tx.profile },
+    { id:"home", label:tx.home },
+    { id:"feed", label:tx.feed },
+    { id:"communities", label:tx.communities },
+    { id:"saved", label:tx.saved },
+    { id:"profile", label:tx.profile },
   ];
 
   const PostCard = ({ post }) => {
@@ -659,10 +688,6 @@ export default function App() {
     <>
       <style>{css}</style>
       <div className="phone">
-        <div className="status-bar">
-          <span>9:41</span>
-          <span>●●●  WiFi  🔋</span>
-        </div>
         {!topBar.hide && (
           <div className="top-bar">
             {topBar.back
@@ -690,7 +715,7 @@ export default function App() {
             {navItems.map(item => (
               <button key={item.id} className={`nav-item${screen===item.id||((screen==="feed"||screen==="post")&&item.id==="feed")?" active":""}`}
                 onClick={() => { setScreen(item.id); if(item.id!=="feed") setSelectedKotha(null); setSelectedPost(null); }}>
-                <span className="nav-icon">{item.icon}</span>
+                <NavIcon id={item.id} active={screen===item.id||((screen==="feed"||screen==="post")&&item.id==="feed")} />
                 <span className="nav-label">{item.label}</span>
                 {(screen===item.id||((screen==="feed"||screen==="post")&&item.id==="feed")) && <div className="nav-dot" />}
               </button>
