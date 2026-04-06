@@ -704,9 +704,9 @@ export default function App() {
         <div className="screen" ref={topRef}>
           {screen==="onboarding"  && <OnboardingScreen />}
           {screen==="home"        && <HomeScreen />}
-          {screen==="feed"        && <FeedScreen />}
+          {screen==="feed"        && FeedScreen()}
           {screen==="communities" && <CommunitiesScreen />}
-          {screen==="post"        && <PostDetailScreen />}
+          {screen==="post"        && PostDetailScreen()}
           {screen==="saved"       && <SavedScreen />}
           {screen==="profile"     && <ProfileScreen />}
         </div>
