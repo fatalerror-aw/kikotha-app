@@ -253,11 +253,9 @@ async function askAI(question, lang) {
   try {
     const res = await fetch("/api/chat", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-sonnet-4-5",
         max_tokens: 800,
         system: systemPrompt,
         messages: [{ role: "user", content: question }],
@@ -272,105 +270,68 @@ async function askAI(question, lang) {
   }
 }
 
-export default function App() {
-  const [lang, setLang] = useState("en");
-  const [screen, setScreen] = useState("home");
-  const [activeFilter, setActiveFilter] = useState(0);
-  const [selectedPost, setSelectedPost] = useState(null);
-  const [selectedKotha, setSelectedKotha] = useState(null);
-  const [onboardStep, setOnboardStep] = useState(0);
-  const [selectedCountry, setSelectedCountry] = useState(1);
-  const [question, setQuestion] = useState("");
-  const [aiResponse, setAiResponse] = useState(null);
-  const [aiThinking, setAiThinking] = useState(false);
-  const [feedbackGiven, setFeedbackGiven] = useState(false);
-  const [savedPosts, setSavedPosts] = useState([]);
-  const [joinedKothas, setJoinedKothas] = useState(["immigration","lifeabroad","canada"]);
-  const topRef = useRef(null);
-  const tx = T[lang];
+// ── Components defined outside App to prevent remounting on state changes ──
 
-  const scrollTop = () => topRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+function NavIcon({ id, active }) {
+  const c = active ? "var(--gold)" : "var(--muted)";
+  if (id === "home") return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 9.5L12 3l9 6.5V21a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path d="M9 22V12h6v10"/>
+    </svg>
+  );
+  if (id === "feed") return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+      <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+    </svg>
+  );
+  if (id === "communities") return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="9" cy="7" r="3"/><circle cx="17" cy="9" r="2.5"/>
+      <path d="M2 20c0-3.3 3.1-6 7-6s7 2.7 7 6"/><path d="M17 14c2.2.4 4 2.1 4 4.5"/>
+    </svg>
+  );
+  if (id === "saved") return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>
+    </svg>
+  );
+  if (id === "profile") return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+    </svg>
+  );
+  return null;
+}
 
-  const handleAsk = async () => {
-    if (!question.trim()) return;
-    setAiThinking(true);
-    setAiResponse(null);
-    const resp = await askAI(question, lang);
-    setAiThinking(false);
-    setAiResponse(resp);
-    setQuestion("");
-  };
-
-  const toggleSave = (id) => setSavedPosts(p => p.includes(id) ? p.filter(x=>x!==id) : [...p,id]);
-  const toggleJoin = (kid) => setJoinedKothas(p => p.includes(kid) ? p.filter(x=>x!==kid) : [...p,kid]);
-
-  const NavIcon = ({ id, active }) => {
-    const c = active ? "var(--gold)" : "var(--muted)";
-    if (id === "home") return (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M3 9.5L12 3l9 6.5V21a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path d="M9 22V12h6v10"/>
-      </svg>
-    );
-    if (id === "feed") return (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-        <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
-      </svg>
-    );
-    if (id === "communities") return (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="9" cy="7" r="3"/><circle cx="17" cy="9" r="2.5"/>
-        <path d="M2 20c0-3.3 3.1-6 7-6s7 2.7 7 6"/><path d="M17 14c2.2.4 4 2.1 4 4.5"/>
-      </svg>
-    );
-    if (id === "saved") return (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>
-      </svg>
-    );
-    if (id === "profile") return (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-      </svg>
-    );
-    return null;
-  };
-
-  const navItems = [
-    { id:"home", label:tx.home },
-    { id:"feed", label:tx.feed },
-    { id:"communities", label:tx.communities },
-    { id:"saved", label:tx.saved },
-    { id:"profile", label:tx.profile },
-  ];
-
-  const PostCard = ({ post }) => {
-    const title = lang==="bn" ? post.titleBn : post.titleEn;
-    const name  = lang==="bn" ? post.nameBn  : post.name;
-    const type  = lang==="bn" ? tx[`type${typeClass(post.type)}`] || post.type : post.type;
-    const tc    = typeClass(post.type);
-    return (
-      <div className="post-card fade-in" onClick={() => { setSelectedPost(post); setScreen("post"); scrollTop(); }}>
-        <div className="post-card-accent" style={{ background: typeAccent(post.type) }} />
-        <div className="post-meta">
-          <div className="avatar">{post.av}</div>
-          <span className="post-author">{post.flag} {name}{post.badge && <span className="verified"> ✓</span>}</span>
-          <span className="post-kotha">k/{tx.k[post.kotha]}</span>
-          <span className="post-time">{post.time}</span>
-        </div>
-        <div style={{ marginBottom:6 }}>
-          <span className={`type-badge type-${tc}`}>{type}</span>
-        </div>
-        <div className="post-title">{title}</div>
-        <div className="post-footer">
-          <span className="reactions">{post.reactions}</span>
-          <span className="comment-count">💬 {post.comments}</span>
-        </div>
+function PostCard({ post, lang, tx, onSelect }) {
+  const title = lang==="bn" ? post.titleBn : post.titleEn;
+  const name  = lang==="bn" ? post.nameBn  : post.name;
+  const type  = lang==="bn" ? tx[`type${typeClass(post.type)}`] || post.type : post.type;
+  const tc    = typeClass(post.type);
+  return (
+    <div className="post-card fade-in" onClick={() => onSelect(post)}>
+      <div className="post-card-accent" style={{ background: typeAccent(post.type) }} />
+      <div className="post-meta">
+        <div className="avatar">{post.av}</div>
+        <span className="post-author">{post.flag} {name}{post.badge && <span className="verified"> ✓</span>}</span>
+        <span className="post-kotha">k/{tx.k[post.kotha]}</span>
+        <span className="post-time">{post.time}</span>
       </div>
-    );
-  };
+      <div style={{ marginBottom:6 }}>
+        <span className={`type-badge type-${tc}`}>{type}</span>
+      </div>
+      <div className="post-title">{title}</div>
+      <div className="post-footer">
+        <span className="reactions">{post.reactions}</span>
+        <span className="comment-count">💬 {post.comments}</span>
+      </div>
+    </div>
+  );
+}
 
-  const HomeScreen = () => (
+function HomeScreen({ tx, lang, setScreen, onSelectPost }) {
+  return (
     <div className="fade-in">
       <div className="hero">
         <div className="hero-bangla">{tx.brand}</div>
@@ -383,67 +344,69 @@ export default function App() {
         <span className="section-title">{tx.trending}</span>
         <span className="section-link" onClick={() => setScreen("feed")}>{tx.seeAll}</span>
       </div>
-      {POSTS.map(p => <PostCard key={p.id} post={p} />)}
+      {POSTS.map(p => <PostCard key={p.id} post={p} lang={lang} tx={tx} onSelect={onSelectPost} />)}
     </div>
   );
+}
 
-  const FeedScreen = () => {
-    const filters = [tx.filterHot, tx.filterNew, tx.filterQ, tx.filterNews, tx.filterWarn];
-    const kotha = selectedKotha ? KOTHAS.find(k => k.id===selectedKotha) : null;
-    const filteredPosts = selectedKotha ? POSTS.filter(p => p.kotha===selectedKotha) : POSTS;
-    const isJoined = selectedKotha ? joinedKothas.includes(selectedKotha) : false;
-    return (
-      <div className="fade-in">
-        {kotha && (
-          <div className="kotha-hdr">
-            <div className="kotha-hdr-top">
-              <div>
-                <div className="kotha-hdr-name">{kotha.icon} {tx.k[kotha.id]}</div>
-                <div className="kotha-hdr-meta">{kotha.members} {tx.members} · {tx.active}</div>
-              </div>
-              <button className="join-btn" onClick={() => toggleJoin(kotha.id)} style={isJoined?{background:"var(--card3)",color:"var(--muted)"}:{}}>
-                {isJoined ? tx.joined : tx.join}
-              </button>
+function FeedScreen({ tx, lang, selectedKotha, joinedKothas, activeFilter, setActiveFilter, question, setQuestion, handleAsk, aiThinking, aiResponse, feedbackGiven, setFeedbackGiven, toggleJoin, onSelectPost }) {
+  const filters = [tx.filterHot, tx.filterNew, tx.filterQ, tx.filterNews, tx.filterWarn];
+  const kotha = selectedKotha ? KOTHAS.find(k => k.id===selectedKotha) : null;
+  const filteredPosts = selectedKotha ? POSTS.filter(p => p.kotha===selectedKotha) : POSTS;
+  const isJoined = selectedKotha ? joinedKothas.includes(selectedKotha) : false;
+  return (
+    <div className="fade-in">
+      {kotha && (
+        <div className="kotha-hdr">
+          <div className="kotha-hdr-top">
+            <div>
+              <div className="kotha-hdr-name">{kotha.icon} {tx.k[kotha.id]}</div>
+              <div className="kotha-hdr-meta">{kotha.members} {tx.members} · {tx.active}</div>
             </div>
+            <button className="join-btn" onClick={() => toggleJoin(kotha.id)} style={isJoined?{background:"var(--card3)",color:"var(--muted)"}:{}}>
+              {isJoined ? tx.joined : tx.join}
+            </button>
           </div>
-        )}
-        <div className="filters">
-          {filters.map((f,i) => (
-            <div key={i} className={`filter-pill${activeFilter===i?" active":""}`} onClick={() => setActiveFilter(i)}>{f}</div>
-          ))}
         </div>
-        <div className="ask-box">
-          <textarea className="ask-textarea" rows={3} placeholder={tx.askPlaceholder} value={question} onChange={e => setQuestion(e.target.value)} />
-          <button className="ask-submit" onClick={handleAsk}>{tx.postBtn}</button>
-        </div>
-        {aiThinking && (
-          <div className="ai-thinking">
-            <div className="ai-badge">{tx.aiBadge}</div>
-            <div style={{display:"flex",alignItems:"center",gap:8,marginTop:4}}>
-              <div className="thinking-dots"><span/><span/><span/></div>
-              <span style={{fontSize:11,color:"var(--muted)",fontFamily:"var(--font-bn)"}}>{tx.thinking}</span>
-            </div>
-          </div>
-        )}
-        {aiResponse && (
-          <div className="ai-response fade-in">
-            <div className="ai-badge">{tx.aiBadge}</div>
-            <div className="ai-text">{aiResponse}</div>
-            <div className="ai-source">{tx.sources}</div>
-            <div className="ai-disclaimer">{tx.aiDisclaimer}</div>
-            <div className="ai-feedback">
-              <span className="ai-feedback-label">{tx.helpful}</span>
-              <button className={`feedback-btn yes${feedbackGiven?" active":""}`} onClick={() => setFeedbackGiven(true)}>{tx.yes}</button>
-              <button className="feedback-btn" onClick={() => setFeedbackGiven(true)}>{tx.no}</button>
-            </div>
-          </div>
-        )}
-        {filteredPosts.map(p => <PostCard key={p.id} post={p} />)}
+      )}
+      <div className="filters">
+        {filters.map((f,i) => (
+          <div key={i} className={`filter-pill${activeFilter===i?" active":""}`} onClick={() => setActiveFilter(i)}>{f}</div>
+        ))}
       </div>
-    );
-  };
+      <div className="ask-box">
+        <textarea className="ask-textarea" rows={3} placeholder={tx.askPlaceholder} value={question} onChange={e => setQuestion(e.target.value)} />
+        <button className="ask-submit" onClick={handleAsk}>{tx.postBtn}</button>
+      </div>
+      {aiThinking && (
+        <div className="ai-thinking">
+          <div className="ai-badge">{tx.aiBadge}</div>
+          <div style={{display:"flex",alignItems:"center",gap:8,marginTop:4}}>
+            <div className="thinking-dots"><span/><span/><span/></div>
+            <span style={{fontSize:11,color:"var(--muted)",fontFamily:"var(--font-bn)"}}>{tx.thinking}</span>
+          </div>
+        </div>
+      )}
+      {aiResponse && (
+        <div className="ai-response fade-in">
+          <div className="ai-badge">{tx.aiBadge}</div>
+          <div className="ai-text">{aiResponse}</div>
+          <div className="ai-source">{tx.sources}</div>
+          <div className="ai-disclaimer">{tx.aiDisclaimer}</div>
+          <div className="ai-feedback">
+            <span className="ai-feedback-label">{tx.helpful}</span>
+            <button className={`feedback-btn yes${feedbackGiven?" active":""}`} onClick={() => setFeedbackGiven(true)}>{tx.yes}</button>
+            <button className="feedback-btn" onClick={() => setFeedbackGiven(true)}>{tx.no}</button>
+          </div>
+        </div>
+      )}
+      {filteredPosts.map(p => <PostCard key={p.id} post={p} lang={lang} tx={tx} onSelect={onSelectPost} />)}
+    </div>
+  );
+}
 
-  const CommunitiesScreen = () => (
+function CommunitiesScreen({ tx, lang, joinedKothas, setSelectedKotha, setScreen }) {
+  return (
     <div className="fade-in">
       <div className="section-hdr">
         <span className="section-title">{tx.kothas}</span>
@@ -465,110 +428,112 @@ export default function App() {
       </div>
     </div>
   );
+}
 
-  const PostDetailScreen = () => {
-    if (!selectedPost) return null;
-    const p = selectedPost;
-    const title = lang==="bn" ? p.titleBn : p.titleEn;
-    const name  = lang==="bn" ? p.nameBn  : p.name;
-    const type  = lang==="bn" ? tx[`type${typeClass(p.type)}`] || p.type : p.type;
-    const tc    = typeClass(p.type);
-    const isQ   = p.type === "Question";
-    return (
-      <div className="fade-in">
-        <div className="post-detail-body">
-          <div className="post-meta">
-            <div className="avatar">{p.av}</div>
-            <span className="post-author">{p.flag} {name}{p.badge && <span className="verified"> ✓</span>}</span>
-            <span className="post-kotha">k/{tx.k[p.kotha]}</span>
-            <span className="post-time">{p.time}</span>
-          </div>
-          <div style={{marginTop:6,marginBottom:2}}>
-            <span className={`type-badge type-${tc}`}>{type}</span>
-          </div>
-          <div className="post-full-title">{title}</div>
-          <div className="post-actions">
-            <span className="reactions-full">{p.reactions}</span>
-            <button className="action-btn" onClick={() => toggleSave(p.id)}>{savedPosts.includes(p.id)?"🔖 Saved":"🔖 Save"}</button>
-            <button className="action-btn">{tx.share}</button>
-          </div>
+function PostDetailScreen({ tx, lang, selectedPost, savedPosts, toggleSave, question, setQuestion, handleAsk, aiThinking, aiResponse }) {
+  if (!selectedPost) return null;
+  const p = selectedPost;
+  const title = lang==="bn" ? p.titleBn : p.titleEn;
+  const name  = lang==="bn" ? p.nameBn  : p.name;
+  const type  = lang==="bn" ? tx[`type${typeClass(p.type)}`] || p.type : p.type;
+  const tc    = typeClass(p.type);
+  const isQ   = p.type === "Question";
+  return (
+    <div className="fade-in">
+      <div className="post-detail-body">
+        <div className="post-meta">
+          <div className="avatar">{p.av}</div>
+          <span className="post-author">{p.flag} {name}{p.badge && <span className="verified"> ✓</span>}</span>
+          <span className="post-kotha">k/{tx.k[p.kotha]}</span>
+          <span className="post-time">{p.time}</span>
         </div>
-        <div className="divider" />
-        {isQ && (
-          <>
-            <div className="ai-response fade-in">
-              <div className="ai-badge">{tx.aiBadge}</div>
-              <div className="ai-text">
-                {lang==="bn"
-                  ? "হ্যাঁ -- আপনি সৌদি ওয়ার্ক ভিসায় থাকা অবস্থায় কানাডা PR এর জন্য আবেদন করতে পারবেন। এক্সপ্রেস এন্ট্রিতে কানাডায় থাকা বা বেকার থাকা প্রয়োজন নেই।"
-                  : "Yes -- you can apply for Canadian PR while on a Saudi work visa. Express Entry does not require you to be in Canada or unemployed."}
-              </div>
-              <div className="ai-text" style={{marginTop:8,color:"var(--cream2)"}}>
-                {lang==="bn"
-                  ? "আপনার নিয়োগকর্তার মতামত IRCC-এর কাছে প্রাসঙ্গিক নয়। CRS স্কোর, IELTS এবং কাজের অভিজ্ঞতার ডকুমেন্টেশন প্রস্তুত রাখুন।"
-                  : "Your employer's knowledge of your plans is not relevant to IRCC. Ensure your CRS score, IELTS, and work experience documentation are current."}
-              </div>
-              <div className="ai-source">{tx.sources}</div>
-              <div className="ai-disclaimer">{tx.aiDisclaimer}</div>
-              <div className="ai-feedback">
-                <span className="ai-feedback-label">{tx.helpful}</span>
-                <button className="feedback-btn yes">{tx.yes}</button>
-                <button className="feedback-btn">{tx.no}</button>
-              </div>
-            </div>
-            <div style={{padding:"8px 16px",fontSize:11,color:"var(--muted)",fontFamily:"var(--font-bn)"}}>{tx.communityAdd}</div>
-          </>
-        )}
-        <div className="divider" />
-        <div style={{padding:"10px 16px 6px"}}>
-          <span style={{fontSize:13,fontWeight:600,color:"var(--cream)",fontFamily:"var(--font-bn)"}}>{tx.commentsHdr(p.comments)}</span>
+        <div style={{marginTop:6,marginBottom:2}}>
+          <span className={`type-badge type-${tc}`}>{type}</span>
         </div>
-        {COMMENTS.map((c,i) => (
-          <div key={i} className="comment">
-            <div className="post-meta">
-              <div className="avatar" style={{width:24,height:24,fontSize:9}}>{c.av}</div>
-              <span className="post-author" style={{fontSize:11}}>{c.flag} {lang==="bn"?c.nameBn:c.name}{c.badge&&<span className="verified"> ✓</span>}</span>
-            </div>
-            <div className="comment-text">{lang==="bn"?c.textBn:c.textEn}</div>
-            <div className="comment-react">{c.reactions}</div>
-          </div>
-        ))}
-        <div className="ask-box" style={{marginTop:8}}>
-          <textarea className="ask-textarea" rows={2} placeholder={lang==="bn"?"মন্তব্য লিখুন...":"Add a comment..."} value={question} onChange={e => setQuestion(e.target.value)} />
-          <button className="ask-submit" onClick={handleAsk}>{lang==="bn"?"মন্তব্য করুন":"Comment"}</button>
+        <div className="post-full-title">{title}</div>
+        <div className="post-actions">
+          <span className="reactions-full">{p.reactions}</span>
+          <button className="action-btn" onClick={() => toggleSave(p.id)}>{savedPosts.includes(p.id)?"🔖 Saved":"🔖 Save"}</button>
+          <button className="action-btn">{tx.share}</button>
         </div>
-        {aiThinking && (
-          <div className="ai-thinking">
-            <div className="ai-badge">{tx.aiBadge}</div>
-            <div style={{display:"flex",alignItems:"center",gap:8,marginTop:4}}>
-              <div className="thinking-dots"><span/><span/><span/></div>
-              <span style={{fontSize:11,color:"var(--muted)"}}>{tx.thinking}</span>
-            </div>
-          </div>
-        )}
-        {aiResponse && (
+      </div>
+      <div className="divider" />
+      {isQ && (
+        <>
           <div className="ai-response fade-in">
             <div className="ai-badge">{tx.aiBadge}</div>
-            <div className="ai-text">{aiResponse}</div>
+            <div className="ai-text">
+              {lang==="bn"
+                ? "হ্যাঁ -- আপনি সৌদি ওয়ার্ক ভিসায় থাকা অবস্থায় কানাডা PR এর জন্য আবেদন করতে পারবেন। এক্সপ্রেস এন্ট্রিতে কানাডায় থাকা বা বেকার থাকা প্রয়োজন নেই।"
+                : "Yes -- you can apply for Canadian PR while on a Saudi work visa. Express Entry does not require you to be in Canada or unemployed."}
+            </div>
+            <div className="ai-text" style={{marginTop:8,color:"var(--cream2)"}}>
+              {lang==="bn"
+                ? "আপনার নিয়োগকর্তার মতামত IRCC-এর কাছে প্রাসঙ্গিক নয়। CRS স্কোর, IELTS এবং কাজের অভিজ্ঞতার ডকুমেন্টেশন প্রস্তুত রাখুন।"
+                : "Your employer's knowledge of your plans is not relevant to IRCC. Ensure your CRS score, IELTS, and work experience documentation are current."}
+            </div>
+            <div className="ai-source">{tx.sources}</div>
             <div className="ai-disclaimer">{tx.aiDisclaimer}</div>
+            <div className="ai-feedback">
+              <span className="ai-feedback-label">{tx.helpful}</span>
+              <button className="feedback-btn yes">{tx.yes}</button>
+              <button className="feedback-btn">{tx.no}</button>
+            </div>
           </div>
-        )}
+          <div style={{padding:"8px 16px",fontSize:11,color:"var(--muted)",fontFamily:"var(--font-bn)"}}>{tx.communityAdd}</div>
+        </>
+      )}
+      <div className="divider" />
+      <div style={{padding:"10px 16px 6px"}}>
+        <span style={{fontSize:13,fontWeight:600,color:"var(--cream)",fontFamily:"var(--font-bn)"}}>{tx.commentsHdr(p.comments)}</span>
       </div>
-    );
-  };
-
-  const SavedScreen = () => {
-    const saved = POSTS.filter(p => savedPosts.includes(p.id));
-    if (!saved.length) return (
-      <div className="empty-state fade-in">
-        <div className="empty-icon">🔖</div>
-        <div className="empty-text">{lang==="bn"?"কোনো সংরক্ষিত পোস্ট নেই":"No saved posts yet"}</div>
+      {COMMENTS.map((c,i) => (
+        <div key={i} className="comment">
+          <div className="post-meta">
+            <div className="avatar" style={{width:24,height:24,fontSize:9}}>{c.av}</div>
+            <span className="post-author" style={{fontSize:11}}>{c.flag} {lang==="bn"?c.nameBn:c.name}{c.badge&&<span className="verified"> ✓</span>}</span>
+          </div>
+          <div className="comment-text">{lang==="bn"?c.textBn:c.textEn}</div>
+          <div className="comment-react">{c.reactions}</div>
+        </div>
+      ))}
+      <div className="ask-box" style={{marginTop:8}}>
+        <textarea className="ask-textarea" rows={2} placeholder={lang==="bn"?"মন্তব্য লিখুন...":"Add a comment..."} value={question} onChange={e => setQuestion(e.target.value)} />
+        <button className="ask-submit" onClick={handleAsk}>{lang==="bn"?"মন্তব্য করুন":"Comment"}</button>
       </div>
-    );
-    return <div className="fade-in">{saved.map(p => <PostCard key={p.id} post={p} />)}</div>;
-  };
+      {aiThinking && (
+        <div className="ai-thinking">
+          <div className="ai-badge">{tx.aiBadge}</div>
+          <div style={{display:"flex",alignItems:"center",gap:8,marginTop:4}}>
+            <div className="thinking-dots"><span/><span/><span/></div>
+            <span style={{fontSize:11,color:"var(--muted)"}}>{tx.thinking}</span>
+          </div>
+        </div>
+      )}
+      {aiResponse && (
+        <div className="ai-response fade-in">
+          <div className="ai-badge">{tx.aiBadge}</div>
+          <div className="ai-text">{aiResponse}</div>
+          <div className="ai-disclaimer">{tx.aiDisclaimer}</div>
+        </div>
+      )}
+    </div>
+  );
+}
 
-  const ProfileScreen = () => (
+function SavedScreen({ lang, savedPosts, tx, onSelectPost }) {
+  const saved = POSTS.filter(p => savedPosts.includes(p.id));
+  if (!saved.length) return (
+    <div className="empty-state fade-in">
+      <div className="empty-icon">🔖</div>
+      <div className="empty-text">{lang==="bn"?"কোনো সংরক্ষিত পোস্ট নেই":"No saved posts yet"}</div>
+    </div>
+  );
+  return <div className="fade-in">{saved.map(p => <PostCard key={p.id} post={p} lang={lang} tx={tx} onSelect={onSelectPost} />)}</div>;
+}
+
+function ProfileScreen({ tx, lang, setSelectedKotha, setScreen }) {
+  return (
     <div className="fade-in">
       <div className="profile-hero">
         <div className="profile-avatar">AW</div>
@@ -611,8 +576,10 @@ export default function App() {
       </div>
     </div>
   );
+}
 
-  const OnboardingScreen = () => (
+function OnboardingScreen({ tx, lang, setLang, onboardStep, setOnboardStep, setScreen, selectedCountry, setSelectedCountry }) {
+  return (
     <div className="onboard fade-in">
       <div className="progress-dots">
         {[0,1,2,3].map(i => <div key={i} className={`progress-dot${i===onboardStep?" active":""}`} />)}
@@ -675,6 +642,51 @@ export default function App() {
       )}
     </div>
   );
+}
+
+// ── App ──
+
+export default function App() {
+  const [lang, setLang] = useState("en");
+  const [screen, setScreen] = useState("home");
+  const [activeFilter, setActiveFilter] = useState(0);
+  const [selectedPost, setSelectedPost] = useState(null);
+  const [selectedKotha, setSelectedKotha] = useState(null);
+  const [onboardStep, setOnboardStep] = useState(0);
+  const [selectedCountry, setSelectedCountry] = useState(1);
+  const [question, setQuestion] = useState("");
+  const [aiResponse, setAiResponse] = useState(null);
+  const [aiThinking, setAiThinking] = useState(false);
+  const [feedbackGiven, setFeedbackGiven] = useState(false);
+  const [savedPosts, setSavedPosts] = useState([]);
+  const [joinedKothas, setJoinedKothas] = useState(["immigration","lifeabroad","canada"]);
+  const topRef = useRef(null);
+  const tx = T[lang];
+
+  const scrollTop = () => topRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+
+  const handleAsk = async () => {
+    if (!question.trim()) return;
+    setAiThinking(true);
+    setAiResponse(null);
+    const resp = await askAI(question, lang);
+    setAiThinking(false);
+    setAiResponse(resp);
+    setQuestion("");
+  };
+
+  const toggleSave = (id) => setSavedPosts(p => p.includes(id) ? p.filter(x=>x!==id) : [...p,id]);
+  const toggleJoin = (kid) => setJoinedKothas(p => p.includes(kid) ? p.filter(x=>x!==kid) : [...p,kid]);
+
+  const handleSelectPost = (post) => { setSelectedPost(post); setScreen("post"); scrollTop(); };
+
+  const navItems = [
+    { id:"home", label:tx.home },
+    { id:"feed", label:tx.feed },
+    { id:"communities", label:tx.communities },
+    { id:"saved", label:tx.saved },
+    { id:"profile", label:tx.profile },
+  ];
 
   const getTopBarContent = () => {
     if (screen==="post" && selectedPost) return { kotha:`k/${tx.k[selectedPost.kotha]}`, back:true };
@@ -702,13 +714,13 @@ export default function App() {
           </div>
         )}
         <div className="screen" ref={topRef}>
-          {screen==="onboarding"  && <OnboardingScreen />}
-          {screen==="home"        && <HomeScreen />}
-          {screen==="feed"        && FeedScreen()}
-          {screen==="communities" && <CommunitiesScreen />}
-          {screen==="post"        && PostDetailScreen()}
-          {screen==="saved"       && <SavedScreen />}
-          {screen==="profile"     && <ProfileScreen />}
+          {screen==="onboarding"  && <OnboardingScreen tx={tx} lang={lang} setLang={setLang} onboardStep={onboardStep} setOnboardStep={setOnboardStep} setScreen={setScreen} selectedCountry={selectedCountry} setSelectedCountry={setSelectedCountry} />}
+          {screen==="home"        && <HomeScreen tx={tx} lang={lang} setScreen={setScreen} onSelectPost={handleSelectPost} />}
+          {screen==="feed"        && <FeedScreen tx={tx} lang={lang} selectedKotha={selectedKotha} joinedKothas={joinedKothas} activeFilter={activeFilter} setActiveFilter={setActiveFilter} question={question} setQuestion={setQuestion} handleAsk={handleAsk} aiThinking={aiThinking} aiResponse={aiResponse} feedbackGiven={feedbackGiven} setFeedbackGiven={setFeedbackGiven} toggleJoin={toggleJoin} onSelectPost={handleSelectPost} />}
+          {screen==="communities" && <CommunitiesScreen tx={tx} lang={lang} joinedKothas={joinedKothas} setSelectedKotha={setSelectedKotha} setScreen={setScreen} />}
+          {screen==="post"        && <PostDetailScreen tx={tx} lang={lang} selectedPost={selectedPost} savedPosts={savedPosts} toggleSave={toggleSave} question={question} setQuestion={setQuestion} handleAsk={handleAsk} aiThinking={aiThinking} aiResponse={aiResponse} />}
+          {screen==="saved"       && <SavedScreen lang={lang} savedPosts={savedPosts} tx={tx} onSelectPost={handleSelectPost} />}
+          {screen==="profile"     && <ProfileScreen tx={tx} lang={lang} setSelectedKotha={setSelectedKotha} setScreen={setScreen} />}
         </div>
         {screen!=="onboarding" && (
           <div className="bottom-nav">
