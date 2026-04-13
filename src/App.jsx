@@ -28,6 +28,12 @@ const T = {
     askPlaceholder: "Ask a question in this Kotha...",
     postBtn: "Post Question", thinking: "Ki Kotha AI is researching your question...",
     langToggle: "বাংলা", logout: "Sign Out",
+    services: "Services", vault: "Vault", vaultSub: "Secure document storage",
+    trustedHands: "Trusted Hands", trustedHandsSub: "Verified professionals",
+    remittance: "Remittance Radar", remittanceSub: "Best rates right now",
+    uploadDoc: "Upload Document", noVaultDocs: "No documents saved yet",
+    findPro: "Find a Professional", noTrustedHands: "Coming soon in your area",
+    sendMoney: "Send Money",
     chooseCountry: "Choose a destination", signIn: "Sign In", signUp: "Sign Up",
     emailLabel: "Email", passwordLabel: "Password", nameLabel: "Full name",
     createAccount: "Create Account", authTagline: "The global Bangladeshi community",
@@ -59,6 +65,12 @@ const T = {
     askPlaceholder: "এই কোথায় প্রশ্ন করুন...",
     postBtn: "প্রশ্ন পোস্ট করুন", thinking: "কি কথা AI আপনার প্রশ্ন গবেষণা করছে...",
     langToggle: "English", logout: "সাইন আউট",
+    services: "সেবাসমূহ", vault: "ভল্ট", vaultSub: "নিরাপদ ডকুমেন্ট স্টোরেজ",
+    trustedHands: "বিশ্বস্ত হাত", trustedHandsSub: "যাচাইকৃত পেশাদার",
+    remittance: "রেমিট্যান্স রাডার", remittanceSub: "এখনকার সেরা রেট",
+    uploadDoc: "ডকুমেন্ট আপলোড", noVaultDocs: "কোনো ডকুমেন্ট নেই",
+    findPro: "পেশাদার খুঁজুন", noTrustedHands: "আপনার এলাকায় শীঘ্রই আসছে",
+    sendMoney: "টাকা পাঠান",
     chooseCountry: "গন্তব্য বেছে নিন", signIn: "সাইন ইন", signUp: "সাইন আপ",
     emailLabel: "ইমেইল", passwordLabel: "পাসওয়ার্ড", nameLabel: "পুরো নাম",
     createAccount: "অ্যাকাউন্ট তৈরি করুন", authTagline: "বিশ্বব্যাপী বাংলাদেশি সম্প্রদায়",
@@ -347,6 +359,14 @@ const css = `
   .empty-state{padding:60px 20px;text-align:center;}
   .empty-icon{font-size:48px;margin-bottom:12px;}
   .empty-text{font-size:14px;color:var(--muted);font-family:var(--font-bn);}
+
+  /* Services */
+  .service-card{display:flex;align-items:center;gap:14px;margin:0 10px 8px;padding:16px 14px;background:var(--card2);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:background 0.15s;}
+  .service-card:active{background:var(--card3);}
+  .service-icon{font-size:28px;flex-shrink:0;}
+  .service-info{flex:1;}
+  .service-title{font-size:14px;font-weight:600;color:var(--text);font-family:var(--font-bn);}
+  .service-sub{font-size:11px;color:var(--muted);font-family:var(--font-bn);margin-top:2px;}
 `;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -405,6 +425,12 @@ function NavIcon({ id, active }) {
   if (id === "search") return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/>
+    </svg>
+  );
+  if (id === "services") return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/>
+      <rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>
     </svg>
   );
   if (id === "profile") return (
@@ -895,6 +921,106 @@ function OnboardingScreen({ tx, lang, setLang, onboardStep, setOnboardStep, navi
   );
 }
 
+function ServicesScreen({ tx, lang, navigate }) {
+  const items = [
+    { id: "vault",           icon: "🔐", title: tx.vault,        sub: tx.vaultSub },
+    { id: "trusted-hands",   icon: "🤝", title: tx.trustedHands, sub: tx.trustedHandsSub },
+    { id: "remittance-radar",icon: "💸", title: tx.remittance,   sub: tx.remittanceSub },
+  ];
+  return (
+    <div className="fade-in">
+      <div className="section-hdr">
+        <span className="section-title">{tx.services}</span>
+      </div>
+      {items.map(s => (
+        <div key={s.id} className="service-card" onClick={() => navigate(s.id, "forward")}>
+          <span className="service-icon">{s.icon}</span>
+          <div className="service-info">
+            <div className="service-title">{s.title}</div>
+            <div className="service-sub">{s.sub}</div>
+          </div>
+          <span style={{color:"var(--muted)",fontSize:20}}>›</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function VaultScreen({ tx, lang }) {
+  return (
+    <div className="fade-in">
+      <div className="section-hdr">
+        <span className="section-title">{tx.vault}</span>
+      </div>
+      <div className="empty-state">
+        <div className="empty-icon">🔐</div>
+        <div className="empty-text">{tx.noVaultDocs}</div>
+        <button className="hero-btn" style={{marginTop:16}}>{tx.uploadDoc}</button>
+      </div>
+    </div>
+  );
+}
+
+function TrustedHandsScreen({ tx, lang }) {
+  const providers = [
+    { av:"IA", flag:"🇨🇦", name:"Iqbal Ahmed",  role:lang==="bn"?"ইমিগ্রেশন কনসালট্যান্ট":"Immigration Consultant", rating:"⭐ 4.9", reviews:143 },
+    { av:"FS", flag:"🇬🇧", name:"Fatema S.",     role:lang==="bn"?"সার্টিফাইড অ্যাকাউন্ট্যান্ট":"Certified Accountant",  rating:"⭐ 4.8", reviews:89 },
+    { av:"RH", flag:"🇦🇪", name:"Rafiq H.",      role:lang==="bn"?"ভিসা এজেন্ট":"Visa Agent",                          rating:"⭐ 4.7", reviews:62 },
+  ];
+  return (
+    <div className="fade-in">
+      <div className="section-hdr">
+        <span className="section-title">{tx.trustedHands}</span>
+        <span className="section-link">{tx.findPro}</span>
+      </div>
+      {providers.map((p, i) => (
+        <div key={i} style={{display:"flex",alignItems:"center",gap:12,margin:"0 10px 8px",padding:"14px",background:"var(--card2)",border:"1px solid var(--border)",borderRadius:"var(--radius)",cursor:"pointer"}}>
+          <div className="avatar" style={{width:40,height:40,fontSize:14}}>{p.av}</div>
+          <div style={{flex:1}}>
+            <div style={{fontSize:13,fontWeight:600,color:"var(--text)",fontFamily:"var(--font-bn)"}}>{p.flag} {p.name} <span className="verified">✓</span></div>
+            <div style={{fontSize:11,color:"var(--muted)",fontFamily:"var(--font-bn)",marginTop:2}}>{p.role}</div>
+            <div style={{fontSize:11,color:"var(--text2)",marginTop:3}}>{p.rating} · {p.reviews} {lang==="bn"?"রিভিউ":"reviews"}</div>
+          </div>
+          <span style={{color:"var(--muted)",fontSize:18}}>›</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function RemittanceRadarScreen({ tx, lang }) {
+  const rates = [
+    { provider:"bKash",        flag:"🇧🇩", rate:"85.40", change:"+0.12", good:true },
+    { provider:"Western Union", flag:"🌐", rate:"84.90", change:"-0.05", good:false },
+    { provider:"Wise",          flag:"🌐", rate:"85.25", change:"+0.08", good:true },
+    { provider:"Remitly",       flag:"🌐", rate:"85.10", change:"+0.03", good:true },
+  ];
+  return (
+    <div className="fade-in">
+      <div className="section-hdr">
+        <span className="section-title">{tx.remittance}</span>
+        <span className="section-link">CAD → BDT</span>
+      </div>
+      <div style={{padding:"0 12px 4px"}}>
+        <div style={{fontSize:11,color:"var(--muted)",fontFamily:"var(--font-bn)",marginBottom:10}}>{lang==="bn"?"১ CAD সমান কত BDT":"1 CAD equals BDT"}</div>
+        {rates.map((r, i) => (
+          <div key={i} style={{display:"flex",alignItems:"center",gap:12,padding:"13px 14px",background:"var(--card2)",border:"1px solid var(--border)",borderRadius:14,marginBottom:8}}>
+            <span style={{fontSize:22}}>{r.flag}</span>
+            <div style={{flex:1}}>
+              <div style={{fontSize:13,fontWeight:600,color:"var(--text)",fontFamily:"var(--font-bn)"}}>{r.provider}</div>
+              <div style={{fontSize:11,color:r.good?"#4CAF50":"#E57373",marginTop:2}}>{r.change} {lang==="bn"?"আজ":"today"}</div>
+            </div>
+            <div style={{textAlign:"right"}}>
+              <div style={{fontSize:18,fontWeight:700,color:"var(--text)",fontFamily:"var(--font-display)"}}>{r.rate}</div>
+              <button style={{fontSize:10,padding:"3px 10px",background:"var(--card3)",border:"1px solid var(--border2)",borderRadius:8,color:"var(--text2)",cursor:"pointer",fontFamily:"var(--font-bn)",marginTop:3}}>{tx.sendMoney}</button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── App ───────────────────────────────────────────────────────────────────────
 export default function App() {
   const [user, setUser] = useState(() => localStorage.getItem("kk_email"));
@@ -986,6 +1112,10 @@ export default function App() {
     } else if (screen === "kotha-countries") {
       setSelectedKotha(null);
       navigate("communities", "back");
+    } else if (["vault","trusted-hands","remittance-radar"].includes(screen)) {
+      navigate("services", "back");
+    } else if (screen === "search") {
+      navigate("home", "back");
     } else {
       navigate("home", "back");
     }
@@ -1005,14 +1135,13 @@ export default function App() {
 
   const navItems = [
     { id:"home",        label:tx.home },
-    { id:"search",      label:tx.search },
     { id:"communities", label:tx.communities },
+    { id:"services",    label:tx.services },
     { id:"saved",       label:tx.saved },
     { id:"profile",     label:tx.profile },
   ];
 
-  const isDeepScreen = ["post","feed","kotha-countries"].includes(screen);
-  const isFeedActive = false; // feed removed from nav
+  const isDeepScreen = ["post","feed","kotha-countries","vault","trusted-hands","remittance-radar","search"].includes(screen);
 
   const getTopBarKotha = () => {
     if (screen === "post" && selectedPost) return `k/${tx.k[selectedPost.kotha]}`;
@@ -1040,29 +1169,34 @@ export default function App() {
               : !isDeepScreen && <span style={{width:40}} />
             }
             <div className="actions">
-              <button className="icon-btn">🔍</button>
+              <button className="icon-btn" onClick={() => navigate("search", "forward")}>🔍</button>
               <button className="lang-btn" onClick={() => setLang(l => l==="en"?"bn":"en")}>{tx.langToggle}</button>
             </div>
           </div>
         )}
 
         <div key={screenKey} className={`screen slide-${navDir}`} ref={topRef}>
-          {screen === "onboarding"      && <OnboardingScreen tx={tx} lang={lang} setLang={setLang} onboardStep={onboardStep} setOnboardStep={setOnboardStep} navigate={navigate} selectedCountry={selectedCountry} setSelectedCountry={setSelectedCountry} />}
-          {screen === "home"            && <HomeScreen tx={tx} lang={lang} navigate={navigate} joinedKothas={joinedKothas} onSelectPost={handleSelectPost} onSelectKotha={handleSelectKotha} />}
-          {screen === "search"          && <SearchScreen lang={lang} tx={tx} onSelectPost={handleSelectPost} />}
-          {screen === "feed"            && <FeedScreen tx={tx} lang={lang} selectedKotha={selectedKotha} selectedKothaCountry={selectedKothaCountry} joinedKothas={joinedKothas} activeFilter={activeFilter} setActiveFilter={setActiveFilter} question={question} setQuestion={setQuestion} handleAsk={handleAsk} aiThinking={aiThinking} aiResponse={aiResponse} feedbackGiven={feedbackGiven} setFeedbackGiven={setFeedbackGiven} toggleJoin={toggleJoin} onSelectPost={handleSelectPost} />}
-          {screen === "kotha-countries" && <KothaCountriesScreen tx={tx} lang={lang} onSelectCountry={handleSelectCountry} />}
-          {screen === "communities"     && <CommunitiesScreen tx={tx} lang={lang} joinedKothas={joinedKothas} onSelectKotha={handleSelectKotha} />}
-          {screen === "post"            && <PostDetailScreen tx={tx} lang={lang} selectedPost={selectedPost} savedPosts={savedPosts} toggleSave={toggleSave} />}
-          {screen === "saved"           && <SavedScreen lang={lang} savedPosts={savedPosts} tx={tx} onSelectPost={handleSelectPost} />}
-          {screen === "profile"         && <ProfileScreen tx={tx} lang={lang} onSelectKotha={handleSelectKotha} onLogout={handleLogout} user={user} />}
+          {screen === "onboarding"        && <OnboardingScreen tx={tx} lang={lang} setLang={setLang} onboardStep={onboardStep} setOnboardStep={setOnboardStep} navigate={navigate} selectedCountry={selectedCountry} setSelectedCountry={setSelectedCountry} />}
+          {screen === "home"              && <HomeScreen tx={tx} lang={lang} navigate={navigate} joinedKothas={joinedKothas} onSelectPost={handleSelectPost} onSelectKotha={handleSelectKotha} />}
+          {screen === "search"            && <SearchScreen lang={lang} tx={tx} onSelectPost={handleSelectPost} />}
+          {screen === "feed"              && <FeedScreen tx={tx} lang={lang} selectedKotha={selectedKotha} selectedKothaCountry={selectedKothaCountry} joinedKothas={joinedKothas} activeFilter={activeFilter} setActiveFilter={setActiveFilter} question={question} setQuestion={setQuestion} handleAsk={handleAsk} aiThinking={aiThinking} aiResponse={aiResponse} feedbackGiven={feedbackGiven} setFeedbackGiven={setFeedbackGiven} toggleJoin={toggleJoin} onSelectPost={handleSelectPost} />}
+          {screen === "kotha-countries"   && <KothaCountriesScreen tx={tx} lang={lang} onSelectCountry={handleSelectCountry} />}
+          {screen === "communities"       && <CommunitiesScreen tx={tx} lang={lang} joinedKothas={joinedKothas} onSelectKotha={handleSelectKotha} />}
+          {screen === "post"              && <PostDetailScreen tx={tx} lang={lang} selectedPost={selectedPost} savedPosts={savedPosts} toggleSave={toggleSave} />}
+          {screen === "saved"             && <SavedScreen lang={lang} savedPosts={savedPosts} tx={tx} onSelectPost={handleSelectPost} />}
+          {screen === "profile"           && <ProfileScreen tx={tx} lang={lang} onSelectKotha={handleSelectKotha} onLogout={handleLogout} user={user} />}
+          {screen === "services"          && <ServicesScreen tx={tx} lang={lang} navigate={navigate} />}
+          {screen === "vault"             && <VaultScreen tx={tx} lang={lang} />}
+          {screen === "trusted-hands"     && <TrustedHandsScreen tx={tx} lang={lang} />}
+          {screen === "remittance-radar"  && <RemittanceRadarScreen tx={tx} lang={lang} />}
         </div>
 
         {screen !== "onboarding" && (
           <div className="bottom-nav">
             {navItems.map(item => {
               const isActive = screen === item.id ||
-                (isDeepScreen && item.id === "communities");
+                (["post","feed","kotha-countries"].includes(screen) && item.id === "communities") ||
+                (["vault","trusted-hands","remittance-radar"].includes(screen) && item.id === "services");
               return (
                 <button key={item.id} className={`nav-item${isActive?" active":""}`}
                   onClick={() => {
