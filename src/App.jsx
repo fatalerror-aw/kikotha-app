@@ -6,7 +6,7 @@ const T = {
     brand: "Ki Kotha", brandBn: "কি কথা", tagline: "What's the talk?",
     taglineSub: "The global Bangladeshi community platform — trusted, bilingual, AI-powered.",
     explore: "Explore Communities →", trending: "🔥 Trending Now", seeAll: "See all",
-    home: "Home", feed: "Feed", communities: "Communities", saved: "Saved", profile: "Profile",
+    home: "Home", search: "Search", communities: "Communities", saved: "Saved", profile: "Profile",
     join: "+ Join", joined: "✓ Joined",
     where: "Where are you based?", personalizeSub: "We'll personalize your Ki Kotha feed",
     continueBtn: "Continue →", step: (n, t) => `Step ${n} of ${t}`,
@@ -37,7 +37,7 @@ const T = {
     brand: "কি কথা", brandBn: "Ki Kotha", tagline: "কি কথা বলছেন?",
     taglineSub: "বিশ্বব্যাপী বাংলাদেশি সম্প্রদায়ের প্ল্যাটফর্ম — বিশ্বস্ত, দ্বিভাষিক, AI-চালিত।",
     explore: "সম্প্রদায় দেখুন →", trending: "🔥 এখন ট্রেন্ডিং", seeAll: "সব দেখুন",
-    home: "হোম", feed: "ফিড", communities: "কমিউনিটি", saved: "সংরক্ষিত", profile: "প্রোফাইল",
+    home: "হোম", search: "খুঁজুন", communities: "কমিউনিটি", saved: "সংরক্ষিত", profile: "প্রোফাইল",
     join: "+ যোগ দিন", joined: "✓ যোগ দিয়েছেন",
     where: "আপনি কোথায় আছেন?", personalizeSub: "আমরা আপনার ফিড কাস্টমাইজ করব",
     continueBtn: "পরবর্তী →", step: (n, t) => `ধাপ ${n} / ${t}`,
@@ -327,6 +327,22 @@ const css = `
   .premium-manage{font-size:11px;color:var(--text2);cursor:pointer;font-family:var(--font-bn);flex-shrink:0;}
   .logout-btn{margin:12px;width:calc(100% - 24px);padding:13px;background:none;border:1px solid var(--border2);color:var(--muted);font-size:13px;font-family:var(--font-bn);border-radius:12px;cursor:pointer;}
 
+  /* Search */
+  .search-box{padding:12px 12px 6px;}
+  .search-input{width:100%;background:var(--card3);border:1px solid var(--border2);color:var(--text);font-size:14px;font-family:var(--font-body);padding:12px 14px;border-radius:14px;outline:none;transition:border-color 0.2s;}
+  .search-input:focus{border-color:#555;}
+  .search-input::placeholder{color:var(--muted2);}
+
+  /* Edit profile */
+  .edit-profile-form{margin:0 12px 12px;padding:16px;background:var(--card);border:1px solid var(--border2);border-radius:var(--radius);}
+  .edit-input{width:100%;background:var(--card3);border:1px solid var(--border2);color:var(--text);font-size:13px;font-family:var(--font-body);padding:11px 13px;border-radius:10px;outline:none;margin-bottom:10px;transition:border-color 0.2s;}
+  .edit-input:focus{border-color:#555;}
+  .edit-input::placeholder{color:var(--muted2);}
+  .edit-btns{display:flex;gap:8px;}
+  .edit-save{flex:1;padding:11px;background:var(--text);color:#0A0A0A;font-size:13px;font-weight:700;border:none;border-radius:10px;cursor:pointer;font-family:var(--font-body);}
+  .edit-cancel{flex:1;padding:11px;background:none;color:var(--muted);font-size:13px;border:1px solid var(--border2);border-radius:10px;cursor:pointer;font-family:var(--font-body);}
+  .edit-profile-btn{margin-top:10px;background:none;border:1px solid var(--border2);color:var(--text2);font-size:11px;padding:6px 14px;border-radius:20px;cursor:pointer;font-family:var(--font-body);}
+
   /* Empty state */
   .empty-state{padding:60px 20px;text-align:center;}
   .empty-icon{font-size:48px;margin-bottom:12px;}
@@ -384,6 +400,11 @@ function NavIcon({ id, active }) {
   if (id === "saved") return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>
+    </svg>
+  );
+  if (id === "search") return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/>
     </svg>
   );
   if (id === "profile") return (
@@ -482,15 +503,9 @@ function HomeScreen({ tx, lang, navigate, joinedKothas, onSelectPost, onSelectKo
   return (
     <div className="fade-in">
       <StoryRow joinedKothas={joinedKothas} tx={tx} onSelectKotha={onSelectKotha} />
-      <div className="hero">
-        <div className="hero-title">{tx.tagline}</div>
-        <div className="hero-sub">{tx.taglineSub}</div>
-        <button className="hero-btn" onClick={() => navigate("communities")}>{tx.explore}</button>
-      </div>
-      <div className="divider" />
       <div className="section-hdr">
         <span className="section-title">{tx.trending}</span>
-        <span className="section-link" onClick={() => navigate("feed")}>{tx.seeAll}</span>
+        <span className="section-link" onClick={() => navigate("communities")}>{tx.explore}</span>
       </div>
       {POSTS.map(p => <PostCard key={p.id} post={p} lang={lang} tx={tx} onSelect={onSelectPost} />)}
     </div>
@@ -599,7 +614,22 @@ function CommunitiesScreen({ tx, lang, joinedKothas, onSelectKotha }) {
   );
 }
 
-function PostDetailScreen({ tx, lang, selectedPost, savedPosts, toggleSave, question, setQuestion, handleAsk, aiThinking, aiResponse }) {
+function PostDetailScreen({ tx, lang, selectedPost, savedPosts, toggleSave }) {
+  const [commentText, setCommentText] = useState("");
+  const [localComments, setLocalComments] = useState(COMMENTS);
+
+  const handleAddComment = () => {
+    const text = commentText.trim();
+    if (!text) return;
+    const newComment = {
+      av: "ME", flag: "🌐", name: localStorage.getItem("kk_name") || "You",
+      nameBn: localStorage.getItem("kk_name") || "আপনি",
+      badge: false, textEn: text, textBn: text, reactions: "",
+    };
+    setLocalComments(prev => [...prev, newComment]);
+    setCommentText("");
+  };
+
   if (!selectedPost) return null;
   const p = selectedPost;
   const title = lang==="bn" ? p.titleBn : p.titleEn;
@@ -656,36 +686,20 @@ function PostDetailScreen({ tx, lang, selectedPost, savedPosts, toggleSave, ques
       <div style={{padding:"10px 16px 6px"}}>
         <span style={{fontSize:13,fontWeight:600,color:"var(--text)",fontFamily:"var(--font-bn)"}}>{tx.commentsHdr(p.comments)}</span>
       </div>
-      {COMMENTS.map((c,i) => (
+      {localComments.map((c,i) => (
         <div key={i} className="comment">
           <div className="post-meta">
             <div className="avatar" style={{width:24,height:24,fontSize:9}}>{c.av}</div>
             <span className="post-author" style={{fontSize:11}}>{c.flag} {lang==="bn"?c.nameBn:c.name}{c.badge&&<span className="verified"> ✓</span>}</span>
           </div>
           <div className="comment-text">{lang==="bn"?c.textBn:c.textEn}</div>
-          <div className="comment-react">{c.reactions}</div>
+          {c.reactions && <div className="comment-react">{c.reactions}</div>}
         </div>
       ))}
       <div className="ask-box" style={{marginTop:8}}>
-        <textarea className="ask-textarea" rows={2} placeholder={lang==="bn"?"মন্তব্য লিখুন...":"Add a comment..."} value={question} onChange={e => setQuestion(e.target.value)} />
-        <button className="ask-submit" onClick={handleAsk}>{lang==="bn"?"মন্তব্য করুন":"Comment"}</button>
+        <textarea className="ask-textarea" rows={2} placeholder={lang==="bn"?"মন্তব্য লিখুন...":"Add a comment..."} value={commentText} onChange={e => setCommentText(e.target.value)} />
+        <button className="ask-submit" onClick={handleAddComment}>{lang==="bn"?"মন্তব্য করুন":"Comment"}</button>
       </div>
-      {aiThinking && (
-        <div className="ai-thinking">
-          <div className="ai-badge">{tx.aiBadge}</div>
-          <div style={{display:"flex",alignItems:"center",gap:8,marginTop:4}}>
-            <div className="thinking-dots"><span/><span/><span/></div>
-            <span style={{fontSize:11,color:"var(--muted)"}}>{tx.thinking}</span>
-          </div>
-        </div>
-      )}
-      {aiResponse && (
-        <div className="ai-response fade-in">
-          <div className="ai-badge">{tx.aiBadge}</div>
-          <div className="ai-text">{aiResponse}</div>
-          <div className="ai-disclaimer">{tx.aiDisclaimer}</div>
-        </div>
-      )}
     </div>
   );
 }
@@ -701,8 +715,62 @@ function SavedScreen({ lang, savedPosts, tx, onSelectPost }) {
   return <div className="fade-in">{saved.map(p => <PostCard key={p.id} post={p} lang={lang} tx={tx} onSelect={onSelectPost} />)}</div>;
 }
 
+function SearchScreen({ lang, tx, onSelectPost }) {
+  const [query, setQuery] = useState("");
+  const q = query.trim().toLowerCase();
+  const results = q
+    ? POSTS.filter(p => (p.titleEn + " " + p.titleBn).toLowerCase().includes(q))
+    : [];
+  return (
+    <div className="fade-in">
+      <div className="search-box">
+        <input
+          className="search-input"
+          placeholder={lang==="bn" ? "পোস্ট খুঁজুন..." : "Search posts..."}
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          autoFocus
+        />
+      </div>
+      {!q && (
+        <div className="empty-state">
+          <div className="empty-icon">🔍</div>
+          <div className="empty-text">{lang==="bn" ? "পোস্ট, বিষয়, সম্প্রদায় খুঁজুন" : "Search posts, topics, communities"}</div>
+        </div>
+      )}
+      {q && results.length === 0 && (
+        <div className="empty-state">
+          <div className="empty-icon">😶</div>
+          <div className="empty-text">{lang==="bn" ? "কোনো ফলাফল পাওয়া যায়নি" : "No results found"}</div>
+        </div>
+      )}
+      {results.map(p => <PostCard key={p.id} post={p} lang={lang} tx={tx} onSelect={onSelectPost} />)}
+    </div>
+  );
+}
+
 function ProfileScreen({ tx, lang, onSelectKotha, onLogout, user }) {
-  const displayName = localStorage.getItem("kk_name") || user || tx.profileName;
+  const [editing, setEditing] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editBio, setEditBio] = useState("");
+  const [displayName, setDisplayName] = useState(() => localStorage.getItem("kk_name") || user || tx.profileName);
+  const [displayBio, setDisplayBio] = useState(() => localStorage.getItem("kk_bio") || tx.profileBio);
+
+  const startEdit = () => {
+    setEditName(displayName);
+    setEditBio(displayBio);
+    setEditing(true);
+  };
+  const saveEdit = () => {
+    const n = editName.trim() || displayName;
+    const b = editBio.trim() || displayBio;
+    localStorage.setItem("kk_name", n);
+    localStorage.setItem("kk_bio", b);
+    setDisplayName(n);
+    setDisplayBio(b);
+    setEditing(false);
+  };
+
   return (
     <div className="fade-in">
       <div className="profile-hero">
@@ -714,9 +782,20 @@ function ProfileScreen({ tx, lang, onSelectKotha, onLogout, user }) {
           <span className="badge-chip">👑 {tx.premium}</span>
           <span className="badge-chip">🤝 {tx.founding}</span>
         </div>
-        <div className="profile-bio">{tx.profileBio}</div>
+        <div className="profile-bio">{displayBio}</div>
         <div className="profile-since">{tx.memberSince}</div>
+        <button className="edit-profile-btn" onClick={startEdit}>{lang==="bn"?"প্রোফাইল সম্পাদনা":"Edit Profile"}</button>
       </div>
+      {editing && (
+        <div className="edit-profile-form">
+          <input className="edit-input" placeholder={lang==="bn"?"নাম":"Name"} value={editName} onChange={e => setEditName(e.target.value)} />
+          <input className="edit-input" placeholder={lang==="bn"?"বায়ো":"Bio"} value={editBio} onChange={e => setEditBio(e.target.value)} />
+          <div className="edit-btns">
+            <button className="edit-save" onClick={saveEdit}>{lang==="bn"?"সংরক্ষণ":"Save"}</button>
+            <button className="edit-cancel" onClick={() => setEditing(false)}>{lang==="bn"?"বাতিল":"Cancel"}</button>
+          </div>
+        </div>
+      )}
       <div className="stats-row">
         <div className="stat-item"><div className="stat-val">47</div><div className="stat-label">{tx.postsLabel}</div></div>
         <div className="stat-item"><div className="stat-val">312</div><div className="stat-label">{tx.commentsLabel}</div></div>
@@ -926,14 +1005,14 @@ export default function App() {
 
   const navItems = [
     { id:"home",        label:tx.home },
-    { id:"feed",        label:tx.feed },
+    { id:"search",      label:tx.search },
     { id:"communities", label:tx.communities },
     { id:"saved",       label:tx.saved },
     { id:"profile",     label:tx.profile },
   ];
 
   const isDeepScreen = ["post","feed","kotha-countries"].includes(screen);
-  const isFeedActive = screen === "feed" || screen === "post" || screen === "kotha-countries";
+  const isFeedActive = false; // feed removed from nav
 
   const getTopBarKotha = () => {
     if (screen === "post" && selectedPost) return `k/${tx.k[selectedPost.kotha]}`;
@@ -970,10 +1049,11 @@ export default function App() {
         <div key={screenKey} className={`screen slide-${navDir}`} ref={topRef}>
           {screen === "onboarding"      && <OnboardingScreen tx={tx} lang={lang} setLang={setLang} onboardStep={onboardStep} setOnboardStep={setOnboardStep} navigate={navigate} selectedCountry={selectedCountry} setSelectedCountry={setSelectedCountry} />}
           {screen === "home"            && <HomeScreen tx={tx} lang={lang} navigate={navigate} joinedKothas={joinedKothas} onSelectPost={handleSelectPost} onSelectKotha={handleSelectKotha} />}
+          {screen === "search"          && <SearchScreen lang={lang} tx={tx} onSelectPost={handleSelectPost} />}
           {screen === "feed"            && <FeedScreen tx={tx} lang={lang} selectedKotha={selectedKotha} selectedKothaCountry={selectedKothaCountry} joinedKothas={joinedKothas} activeFilter={activeFilter} setActiveFilter={setActiveFilter} question={question} setQuestion={setQuestion} handleAsk={handleAsk} aiThinking={aiThinking} aiResponse={aiResponse} feedbackGiven={feedbackGiven} setFeedbackGiven={setFeedbackGiven} toggleJoin={toggleJoin} onSelectPost={handleSelectPost} />}
           {screen === "kotha-countries" && <KothaCountriesScreen tx={tx} lang={lang} onSelectCountry={handleSelectCountry} />}
           {screen === "communities"     && <CommunitiesScreen tx={tx} lang={lang} joinedKothas={joinedKothas} onSelectKotha={handleSelectKotha} />}
-          {screen === "post"            && <PostDetailScreen tx={tx} lang={lang} selectedPost={selectedPost} savedPosts={savedPosts} toggleSave={toggleSave} question={question} setQuestion={setQuestion} handleAsk={handleAsk} aiThinking={aiThinking} aiResponse={aiResponse} />}
+          {screen === "post"            && <PostDetailScreen tx={tx} lang={lang} selectedPost={selectedPost} savedPosts={savedPosts} toggleSave={toggleSave} />}
           {screen === "saved"           && <SavedScreen lang={lang} savedPosts={savedPosts} tx={tx} onSelectPost={handleSelectPost} />}
           {screen === "profile"         && <ProfileScreen tx={tx} lang={lang} onSelectKotha={handleSelectKotha} onLogout={handleLogout} user={user} />}
         </div>
@@ -981,7 +1061,8 @@ export default function App() {
         {screen !== "onboarding" && (
           <div className="bottom-nav">
             {navItems.map(item => {
-              const isActive = screen === item.id || (isFeedActive && item.id === "feed");
+              const isActive = screen === item.id ||
+                (isDeepScreen && item.id === "communities");
               return (
                 <button key={item.id} className={`nav-item${isActive?" active":""}`}
                   onClick={() => {
