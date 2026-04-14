@@ -34,6 +34,38 @@ const T = {
     uploadDoc: "Upload Document", noVaultDocs: "No documents saved yet",
     findPro: "Find a Professional", noTrustedHands: "Coming soon in your area",
     sendMoney: "Send Money",
+    karma: "Karma", activeIn: "Active In", kothaCount: (n) => `${n} Kothas joined`,
+    achievements: (n) => `${n} achievements`, addSocialLink: "Add Social Link",
+    tabPosts: "Posts", tabComments: "Comments", tabAbout: "About",
+    noPosts: "No posts yet", noComments: "No comments yet",
+    myAccount: "My Account", history: "History", drafts: "Drafts",
+    onlineStatus: "Online Status", customFeed: "Add to custom feed",
+    profileCuration: "Profile curation", settings: "Settings",
+    accountSettings: "Account Settings", appSettings: "App Settings",
+    acctBasics: "ACCOUNT BASICS", emailAddress: "Email Address",
+    updatePassword: "Update Password", phoneNumber: "Phone Number",
+    locationRegion: "Location & Region", locationNone: "No location set",
+    genderIdentity: "Gender Identity",
+    linkedAccounts: "LINKED ACCOUNTS", unlink: "Unlink", link: "Link",
+    safetyPrivacy: "SAFETY & PRIVACY", blockedAccounts: "Blocked Accounts",
+    mutedCommunities: "Muted Communities", chatMessaging: "Chat & Messaging",
+    allowFollow: "Let others follow you", showFollowerCount: "Show follower count publicly",
+    privacyControls: "PRIVACY CONTROLS", manageVisibility: "Manage Profile Visibility",
+    feedRecommendations: "Feed Recommendations",
+    externalSearch: "Appear in External Search", personalizedAds: "Personalized Advertising",
+    accessibility: "ACCESSIBILITY", mediaAnimations: "Media & Animations",
+    textSize: "Text Size", subtitlesCaptions: "Subtitles & Captions",
+    display: "DISPLAY", darkMode: "Dark Mode", notifSound: "Notification Sound",
+    autoplayVideos: "Autoplay Videos",
+    advanced: "ADVANCED", saveImageSource: "Save Image Source",
+    muteVideoDefault: "Mute Videos by Default", quickCommentJump: "Quick Comment Jump",
+    recentCommunities: "Recent Communities", defaultCommentSort: "Default Comment Sort",
+    sortTop: "Top",
+    about: "ABOUT", guidelines: "Ki Kotha Guidelines", privacyPolicy: "Privacy Policy",
+    userAgreement: "User Agreement", acknowledgements: "Acknowledgements",
+    support: "SUPPORT", helpCenter: "Help Center", reportBug: "Report a Bug",
+    reportIssue: "Report an Issue", deleteAccount: "Delete Account",
+    version: "Ki Kotha 1.0.0",
     chooseCountry: "Choose a destination", signIn: "Sign In", signUp: "Sign Up",
     emailLabel: "Email", passwordLabel: "Password", nameLabel: "Full name",
     createAccount: "Create Account", authTagline: "The global Bangladeshi community",
@@ -71,6 +103,38 @@ const T = {
     uploadDoc: "ডকুমেন্ট আপলোড", noVaultDocs: "কোনো ডকুমেন্ট নেই",
     findPro: "পেশাদার খুঁজুন", noTrustedHands: "আপনার এলাকায় শীঘ্রই আসছে",
     sendMoney: "টাকা পাঠান",
+    karma: "কর্ম", activeIn: "সক্রিয়", kothaCount: (n) => `${n}টি কোথায় যোগ দিয়েছেন`,
+    achievements: (n) => `${n}টি অর্জন`, addSocialLink: "সোশ্যাল লিঙ্ক যোগ করুন",
+    tabPosts: "পোস্ট", tabComments: "মন্তব্য", tabAbout: "সম্পর্কে",
+    noPosts: "কোনো পোস্ট নেই", noComments: "কোনো মন্তব্য নেই",
+    myAccount: "আমার অ্যাকাউন্ট", history: "ইতিহাস", drafts: "ড্রাফট",
+    onlineStatus: "অনলাইন স্ট্যাটাস", customFeed: "কাস্টম ফিডে যোগ করুন",
+    profileCuration: "প্রোফাইল কিউরেশন", settings: "সেটিংস",
+    accountSettings: "অ্যাকাউন্ট সেটিংস", appSettings: "অ্যাপ সেটিংস",
+    acctBasics: "অ্যাকাউন্ট বেসিক", emailAddress: "ইমেইল ঠিকানা",
+    updatePassword: "পাসওয়ার্ড আপডেট", phoneNumber: "ফোন নম্বর",
+    locationRegion: "অবস্থান ও অঞ্চল", locationNone: "কোনো অবস্থান নেই",
+    genderIdentity: "লিঙ্গ পরিচয়",
+    linkedAccounts: "লিঙ্কড অ্যাকাউন্ট", unlink: "আনলিঙ্ক", link: "লিঙ্ক",
+    safetyPrivacy: "নিরাপত্তা ও গোপনীয়তা", blockedAccounts: "ব্লকড অ্যাকাউন্ট",
+    mutedCommunities: "মিউটড সম্প্রদায়", chatMessaging: "চ্যাট ও মেসেজিং",
+    allowFollow: "অন্যরা অনুসরণ করতে পারবে", showFollowerCount: "অনুসরণকারী সংখ্যা দেখাবে",
+    privacyControls: "গোপনীয়তা নিয়ন্ত্রণ", manageVisibility: "প্রোফাইল দৃশ্যমানতা",
+    feedRecommendations: "ফিড সুপারিশ",
+    externalSearch: "বাহ্যিক সার্চে দেখাবে", personalizedAds: "ব্যক্তিগতকৃত বিজ্ঞাপন",
+    accessibility: "অ্যাক্সেসিবিলিটি", mediaAnimations: "মিডিয়া ও অ্যানিমেশন",
+    textSize: "টেক্সট সাইজ", subtitlesCaptions: "সাবটাইটেল ও ক্যাপশন",
+    display: "ডিসপ্লে", darkMode: "ডার্ক মোড", notifSound: "নোটিফিকেশন সাউন্ড",
+    autoplayVideos: "অটোপ্লে ভিডিও",
+    advanced: "অ্যাডভান্সড", saveImageSource: "ইমেজ সোর্স সেভ করুন",
+    muteVideoDefault: "ডিফল্টে ভিডিও মিউট", quickCommentJump: "দ্রুত মন্তব্যে যান",
+    recentCommunities: "সাম্প্রতিক সম্প্রদায়", defaultCommentSort: "ডিফল্ট মন্তব্য সাজানো",
+    sortTop: "শীর্ষ",
+    about: "সম্পর্কে", guidelines: "কি কথা নির্দেশিকা", privacyPolicy: "গোপনীয়তা নীতি",
+    userAgreement: "ব্যবহারকারী চুক্তি", acknowledgements: "স্বীকৃতি",
+    support: "সহায়তা", helpCenter: "সাহায্য কেন্দ্র", reportBug: "বাগ রিপোর্ট",
+    reportIssue: "সমস্যা রিপোর্ট", deleteAccount: "অ্যাকাউন্ট মুছুন",
+    version: "কি কথা ১.০.০",
     chooseCountry: "গন্তব্য বেছে নিন", signIn: "সাইন ইন", signUp: "সাইন আপ",
     emailLabel: "ইমেইল", passwordLabel: "পাসওয়ার্ড", nameLabel: "পুরো নাম",
     createAccount: "অ্যাকাউন্ট তৈরি করুন", authTagline: "বিশ্বব্যাপী বাংলাদেশি সম্প্রদায়",
@@ -367,6 +431,62 @@ const css = `
   .service-info{flex:1;}
   .service-title{font-size:14px;font-weight:600;color:var(--text);font-family:var(--font-bn);}
   .service-sub{font-size:11px;color:var(--muted);font-family:var(--font-bn);margin-top:2px;}
+
+  /* Profile v2 */
+  .prof-cover{height:180px;background:linear-gradient(160deg,#1A1A1A 0%,#0D0D0D 100%);position:relative;flex-shrink:0;}
+  .prof-cover-menu{position:absolute;top:12px;right:12px;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.5);border:1px solid var(--border2);color:var(--text2);font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .prof-avatar-wrap{position:absolute;bottom:-26px;left:16px;width:64px;height:64px;border-radius:50%;background:var(--card3);border:3px solid var(--bg);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:var(--text);}
+  .prof-header{padding:34px 16px 12px;display:flex;align-items:flex-start;justify-content:space-between;}
+  .prof-name{font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--text);}
+  .prof-edit-btn{background:none;border:1px solid var(--border2);color:var(--text2);font-size:11px;padding:5px 12px;border-radius:16px;cursor:pointer;font-family:var(--font-body);white-space:nowrap;margin-top:2px;}
+  .prof-username{font-size:11px;color:var(--muted);font-family:var(--font-bn);margin-top:1px;}
+  .prof-kothas{font-size:11px;color:var(--muted);font-family:var(--font-bn);margin-top:3px;}
+  .prof-actions-row{display:flex;gap:8px;padding:0 16px 14px;}
+  .prof-action-btn{flex:1;padding:8px 4px;background:var(--card3);border:1px solid var(--border2);color:var(--text2);font-size:11px;font-family:var(--font-bn);border-radius:10px;cursor:pointer;text-align:center;}
+  .prof-stats-row{display:flex;gap:6px;padding:0 16px 14px;overflow-x:auto;}
+  .prof-stats-row::-webkit-scrollbar{display:none;}
+  .prof-stat-pill{flex-shrink:0;background:var(--card3);border:1px solid var(--border);border-radius:10px;padding:7px 12px;text-align:center;}
+  .prof-stat-val{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--text);}
+  .prof-stat-label{font-size:9px;color:var(--muted);font-family:var(--font-bn);margin-top:1px;}
+  .prof-tabs{display:flex;border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+  .prof-tab{flex:1;padding:12px 4px;text-align:center;font-size:12px;font-family:var(--font-bn);color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;}
+  .prof-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+
+  /* Bottom sheet */
+  .sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;display:flex;align-items:flex-end;}
+  .sheet{width:100%;background:#161616;border-radius:20px 20px 0 0;border-top:1px solid var(--border2);padding-bottom:env(safe-area-inset-bottom,16px);}
+  .sheet-handle{width:36px;height:4px;border-radius:2px;background:var(--muted2);margin:12px auto 0;}
+  .sheet-title{font-size:14px;font-weight:600;color:var(--text2);font-family:var(--font-bn);text-align:center;padding:10px 0 4px;}
+  .sheet-item{display:flex;align-items:center;gap:14px;padding:14px 20px;cursor:pointer;border-top:1px solid var(--border);}
+  .sheet-item:active{background:var(--card3);}
+  .sheet-item-icon{font-size:20px;width:24px;text-align:center;}
+  .sheet-item-label{font-size:14px;color:var(--text);font-family:var(--font-bn);flex:1;}
+  .sheet-toggle{width:44px;height:24px;border-radius:12px;border:none;cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0;}
+  .sheet-toggle.on{background:var(--gold);}
+  .sheet-toggle.off{background:var(--muted2);}
+  .sheet-toggle-knob{position:absolute;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left 0.2s;}
+  .sheet-toggle.on .sheet-toggle-knob{left:23px;}
+  .sheet-toggle.off .sheet-toggle-knob{left:3px;}
+
+  /* Account / App Settings */
+  .settings-section-hdr{padding:20px 16px 6px;font-size:10px;font-weight:700;letter-spacing:0.8px;color:var(--muted);font-family:var(--font-body);}
+  .settings-row{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);cursor:pointer;background:var(--card);}
+  .settings-row:active{background:var(--card3);}
+  .settings-row-label{flex:1;font-size:13px;color:var(--text);font-family:var(--font-bn);}
+  .settings-row-sub{font-size:11px;color:var(--muted);font-family:var(--font-bn);margin-top:1px;}
+  .settings-row-val{font-size:12px;color:var(--text2);font-family:var(--font-bn);}
+  .settings-row-arrow{font-size:16px;color:var(--muted);}
+  .settings-toggle{width:42px;height:24px;border-radius:12px;border:none;cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0;}
+  .settings-toggle.on{background:var(--gold);}
+  .settings-toggle.off{background:var(--muted2);}
+  .settings-toggle.locked{background:var(--gold);opacity:0.5;cursor:default;}
+  .settings-toggle-knob{position:absolute;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left 0.2s;}
+  .settings-toggle.on .settings-toggle-knob,.settings-toggle.locked .settings-toggle-knob{left:21px;}
+  .settings-toggle.off .settings-toggle-knob{left:3px;}
+  .settings-new-badge{font-size:9px;background:var(--gold-dim);border:1px solid var(--gold-border);color:var(--gold2);padding:1px 6px;border-radius:6px;font-family:var(--font-body);font-weight:700;}
+  .settings-delete{color:#E57373;}
+  .settings-version{text-align:center;padding:20px;font-size:11px;color:var(--muted2);font-family:var(--font-body);}
+  .settings-link-btn{font-size:11px;padding:4px 10px;border-radius:8px;border:1px solid var(--border2);background:var(--card3);color:var(--text2);cursor:pointer;font-family:var(--font-body);}
 `;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -775,84 +895,275 @@ function SearchScreen({ lang, tx, onSelectPost }) {
   );
 }
 
-function ProfileScreen({ tx, lang, onSelectKotha, onLogout, user }) {
+function SettingsToggle({ on, locked, onChange }) {
+  const cls = locked ? "locked" : on ? "on" : "off";
+  return (
+    <button className={`settings-toggle ${cls}`} onClick={() => !locked && onChange(!on)}>
+      <div className="settings-toggle-knob" />
+    </button>
+  );
+}
+
+function ProfileScreen({ tx, lang, onSelectKotha, onLogout, user, navigate }) {
+  const [displayName, setDisplayName] = useState(() => localStorage.getItem("kk_name") || user || tx.profileName);
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState("");
-  const [editBio, setEditBio] = useState("");
-  const [displayName, setDisplayName] = useState(() => localStorage.getItem("kk_name") || user || tx.profileName);
-  const [displayBio, setDisplayBio] = useState(() => localStorage.getItem("kk_bio") || tx.profileBio);
+  const [activeTab, setActiveTab] = useState("posts");
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [onlineStatus, setOnlineStatus] = useState(true);
+  const email = localStorage.getItem("kk_email") || user || "";
+  const username = email.split("@")[0] || "user";
 
-  const startEdit = () => {
-    setEditName(displayName);
-    setEditBio(displayBio);
-    setEditing(true);
-  };
   const saveEdit = () => {
     const n = editName.trim() || displayName;
-    const b = editBio.trim() || displayBio;
     localStorage.setItem("kk_name", n);
-    localStorage.setItem("kk_bio", b);
     setDisplayName(n);
-    setDisplayBio(b);
     setEditing(false);
   };
 
+  const sheetItems = [
+    { icon:"🔖", label:tx.saved,          action:() => { setSheetOpen(false); navigate("saved","forward"); } },
+    { icon:"🕐", label:tx.history,         action:() => setSheetOpen(false) },
+    { icon:"📝", label:tx.drafts,          action:() => setSheetOpen(false) },
+    { icon:"🟢", label:tx.onlineStatus,    toggle:true, val:onlineStatus, set:setOnlineStatus },
+    { icon:"📌", label:tx.customFeed,      action:() => setSheetOpen(false) },
+    { icon:"✨", label:tx.profileCuration, action:() => setSheetOpen(false) },
+    { icon:"⚙️", label:tx.settings,        action:() => { setSheetOpen(false); navigate("account-settings","forward"); } },
+  ];
+
   return (
-    <div className="fade-in">
-      <div className="profile-hero">
-        <div className="profile-avatar">{displayName[0]?.toUpperCase() || "A"}</div>
-        <div className="profile-name">{displayName}</div>
-        <div className="badges-row">
-          <span className="badge-chip">🇨🇦 {lang==="bn"?"কানাডা":"Canada"}</span>
-          <span className="badge-chip">✓ {tx.verified}</span>
-          <span className="badge-chip">👑 {tx.premium}</span>
-          <span className="badge-chip">🤝 {tx.founding}</span>
-        </div>
-        <div className="profile-bio">{displayBio}</div>
-        <div className="profile-since">{tx.memberSince}</div>
-        <button className="edit-profile-btn" onClick={startEdit}>{lang==="bn"?"প্রোফাইল সম্পাদনা":"Edit Profile"}</button>
+    <div className="fade-in" style={{paddingBottom:80}}>
+      {/* Cover */}
+      <div className="prof-cover">
+        <button className="prof-cover-menu" onClick={() => setSheetOpen(true)}>⋯</button>
+        <div className="prof-avatar-wrap">{displayName[0]?.toUpperCase() || "A"}</div>
       </div>
-      {editing && (
-        <div className="edit-profile-form">
-          <input className="edit-input" placeholder={lang==="bn"?"নাম":"Name"} value={editName} onChange={e => setEditName(e.target.value)} />
-          <input className="edit-input" placeholder={lang==="bn"?"বায়ো":"Bio"} value={editBio} onChange={e => setEditBio(e.target.value)} />
-          <div className="edit-btns">
-            <button className="edit-save" onClick={saveEdit}>{lang==="bn"?"সংরক্ষণ":"Save"}</button>
-            <button className="edit-cancel" onClick={() => setEditing(false)}>{lang==="bn"?"বাতিল":"Cancel"}</button>
+
+      {/* Header */}
+      <div className="prof-header">
+        <div>
+          {editing ? (
+            <div style={{display:"flex",gap:8,alignItems:"center"}}>
+              <input
+                className="edit-input"
+                style={{margin:0,fontSize:14,padding:"6px 10px",width:160}}
+                value={editName}
+                onChange={e => setEditName(e.target.value)}
+                autoFocus
+              />
+              <button className="edit-save" style={{padding:"6px 14px",fontSize:12}} onClick={saveEdit}>{lang==="bn"?"সেভ":"Save"}</button>
+              <button className="edit-cancel" style={{padding:"6px 10px",fontSize:12}} onClick={() => setEditing(false)}>✕</button>
+            </div>
+          ) : (
+            <div className="prof-name">{displayName}</div>
+          )}
+          <div className="prof-username">@{username}</div>
+          <div className="prof-kothas">{tx.kothaCount(3)}</div>
+        </div>
+        {!editing && (
+          <button className="prof-edit-btn" onClick={() => { setEditName(displayName); setEditing(true); }}>
+            {lang==="bn"?"সম্পাদনা":"Edit"}
+          </button>
+        )}
+      </div>
+
+      {/* Action row */}
+      <div className="prof-actions-row">
+        <button className="prof-action-btn">+ {tx.addSocialLink}</button>
+        <button className="prof-action-btn">🏅 {tx.achievements(5)}</button>
+      </div>
+
+      {/* Stats pills */}
+      <div className="prof-stats-row">
+        <div className="prof-stat-pill"><div className="prof-stat-val">4.2K</div><div className="prof-stat-label">{tx.karma}</div></div>
+        <div className="prof-stat-pill"><div className="prof-stat-val">47</div><div className="prof-stat-label">{tx.postsLabel}</div></div>
+        <div className="prof-stat-pill"><div className="prof-stat-val">Mar '26</div><div className="prof-stat-label">{tx.memberSince.split("·")[0].replace("Member since","").trim()}</div></div>
+        <div className="prof-stat-pill"><div className="prof-stat-val">3</div><div className="prof-stat-label">{tx.activeIn}</div></div>
+      </div>
+
+      {/* Tabs */}
+      <div className="prof-tabs">
+        {[["posts",tx.tabPosts],["comments",tx.tabComments],["about",tx.tabAbout]].map(([id,label]) => (
+          <div key={id} className={`prof-tab${activeTab===id?" active":""}`} onClick={() => setActiveTab(id)}>{label}</div>
+        ))}
+      </div>
+
+      {/* Tab content */}
+      {activeTab === "posts" && (
+        <div className="empty-state" style={{paddingTop:48}}>
+          <div className="empty-icon">📝</div>
+          <div className="empty-text">{tx.noPosts}</div>
+        </div>
+      )}
+      {activeTab === "comments" && (
+        <div className="empty-state" style={{paddingTop:48}}>
+          <div className="empty-icon">💬</div>
+          <div className="empty-text">{tx.noComments}</div>
+        </div>
+      )}
+      {activeTab === "about" && (
+        <div style={{padding:"16px"}}>
+          <div style={{fontSize:12,color:"var(--muted)",fontFamily:"var(--font-bn)",lineHeight:1.7}}>
+            {lang==="bn"?"ব্র্যাঞ্চ ম্যানেজার · টরন্টো 🇨🇦":"Branch Manager · Toronto 🇨🇦"}
+          </div>
+          <div style={{marginTop:12,display:"flex",gap:6,flexWrap:"wrap"}}>
+            <span className="badge-chip">✓ {tx.verified}</span>
+            <span className="badge-chip">👑 {tx.premium}</span>
+            <span className="badge-chip">🤝 {tx.founding}</span>
           </div>
         </div>
       )}
-      <div className="stats-row">
-        <div className="stat-item"><div className="stat-val">47</div><div className="stat-label">{tx.postsLabel}</div></div>
-        <div className="stat-item"><div className="stat-val">312</div><div className="stat-label">{tx.commentsLabel}</div></div>
-        <div className="stat-item"><div className="stat-val">1.2K</div><div className="stat-label">{tx.reactionsLabel}</div></div>
-      </div>
-      <div className="section-label">{tx.joinedKothas}</div>
-      {["canada","immigration","jobscareer"].map(kid => {
-        const k = KOTHAS.find(x => x.id===kid);
-        return (
-          <div key={kid} className="kotha-row" onClick={() => onSelectKotha(kid)}>
-            <div className="kotha-row-icon">{k.icon}</div>
-            <div className="kotha-row-info">
-              <div className="kotha-row-name">{tx.k[kid]}</div>
-              <div className="kotha-row-meta">k/{tx.k[kid]} · {k.members} {tx.members}</div>
-            </div>
-            <span style={{color:"var(--muted)",fontSize:18}}>›</span>
+
+      <button className="logout-btn" style={{margin:"20px 12px 0",width:"calc(100% - 24px)"}} onClick={onLogout}>{tx.logout}</button>
+
+      {/* Bottom sheet */}
+      {sheetOpen && (
+        <div className="sheet-overlay" onClick={() => setSheetOpen(false)}>
+          <div className="sheet" onClick={e => e.stopPropagation()}>
+            <div className="sheet-handle" />
+            <div className="sheet-title">{tx.myAccount}</div>
+            {sheetItems.map((item, i) => (
+              <div key={i} className="sheet-item" onClick={item.action || undefined}>
+                <span className="sheet-item-icon">{item.icon}</span>
+                <span className="sheet-item-label">{item.label}</span>
+                {item.toggle && (
+                  <button
+                    className={`sheet-toggle ${item.val?"on":"off"}`}
+                    onClick={e => { e.stopPropagation(); item.set(!item.val); }}
+                  >
+                    <div className="sheet-toggle-knob" />
+                  </button>
+                )}
+                {!item.toggle && <span style={{color:"var(--muted)",fontSize:16}}>›</span>}
+              </div>
+            ))}
           </div>
-        );
-      })}
-      <div className="premium-banner">
-        <span style={{fontSize:24}}>👑</span>
-        <div className="premium-info">
-          <div className="premium-title">{tx.premiumTitle}</div>
-          <div className="premium-sub">{tx.premiumSub}</div>
         </div>
-        <span className="premium-manage">{tx.manage}</span>
-      </div>
-      <button className="logout-btn" onClick={onLogout}>{tx.logout}</button>
+      )}
     </div>
   );
 }
+
+function AccountSettingsScreen({ tx, lang, user, navigate }) {
+  const email = localStorage.getItem("kk_email") || user || "";
+  const [allowFollow, setAllowFollow] = useState(true);
+  const [showFollowers, setShowFollowers] = useState(false);
+  const [feedRec, setFeedRec] = useState(true);
+  const [extSearch, setExtSearch] = useState(true);
+  const [persAds, setPersAds] = useState(true);
+
+  const Row = ({ label, sub, val, arrow=true, onTap, toggle, toggleVal, toggleSet, red, linkBtn, linkLabel }) => (
+    <div className="settings-row" onClick={onTap}>
+      <div style={{flex:1}}>
+        <div className={`settings-row-label${red?" settings-delete":""}`}>{label}</div>
+        {sub && <div className="settings-row-sub">{sub}</div>}
+      </div>
+      {val && <span className="settings-row-val">{val}</span>}
+      {toggle && <SettingsToggle on={toggleVal} onChange={toggleSet} />}
+      {linkBtn && <button className="settings-link-btn">{linkLabel}</button>}
+      {arrow && !toggle && !linkBtn && <span className="settings-row-arrow">›</span>}
+    </div>
+  );
+
+  return (
+    <div className="fade-in" style={{paddingBottom:80}}>
+      <div style={{padding:"16px",borderBottom:"1px solid var(--border)"}}>
+        <div style={{display:"flex",gap:10,alignItems:"center"}}>
+          <button
+            onClick={() => navigate("app-settings","forward")}
+            style={{flex:1,padding:"11px",background:"var(--card3)",border:"1px solid var(--border2)",color:"var(--text2)",fontSize:13,fontFamily:"var(--font-bn)",borderRadius:10,cursor:"pointer",textAlign:"left"}}
+          >
+            ⚙️ {tx.appSettings} ›
+          </button>
+        </div>
+      </div>
+
+      <div className="settings-section-hdr">{tx.acctBasics}</div>
+      <Row label={tx.emailAddress} val={email} />
+      <Row label={tx.updatePassword} />
+      <Row label={tx.phoneNumber} />
+      <Row label={tx.locationRegion} sub={tx.locationNone} />
+      <Row label={tx.genderIdentity} />
+
+      <div className="settings-section-hdr">{tx.linkedAccounts}</div>
+      <Row label="Google" arrow={false} linkBtn linkLabel={tx.unlink} />
+      <Row label="Apple" arrow={false} linkBtn linkLabel={tx.link} />
+
+      <div className="settings-section-hdr">{tx.safetyPrivacy}</div>
+      <Row label={tx.blockedAccounts} />
+      <Row label={tx.mutedCommunities} />
+      <Row label={tx.chatMessaging} />
+      <Row label={tx.allowFollow} arrow={false} toggle toggleVal={allowFollow} toggleSet={setAllowFollow} />
+      <Row label={tx.showFollowerCount} arrow={false} toggle toggleVal={showFollowers} toggleSet={setShowFollowers} />
+
+      <div className="settings-section-hdr">{tx.privacyControls}</div>
+      <Row label={tx.manageVisibility} />
+      <Row label={tx.feedRecommendations} arrow={false} toggle toggleVal={feedRec} toggleSet={setFeedRec} />
+      <Row label={tx.externalSearch} arrow={false} toggle toggleVal={extSearch} toggleSet={setExtSearch} />
+      <Row label={tx.personalizedAds} arrow={false} toggle toggleVal={persAds} toggleSet={setPersAds} />
+    </div>
+  );
+}
+
+function AppSettingsScreen({ tx, lang }) {
+  const [notifSound, setNotifSound] = useState(true);
+  const [autoplay, setAutoplay] = useState(false);
+  const [saveImgSrc, setSaveImgSrc] = useState(true);
+  const [muteVid, setMuteVid] = useState(false);
+  const [quickComment, setQuickComment] = useState(true);
+  const [recentComm, setRecentComm] = useState(true);
+
+  const Row = ({ label, sub, toggle, toggleVal, toggleSet, locked, val, badge, red, arrow=true }) => (
+    <div className="settings-row">
+      <div style={{flex:1}}>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          <span className={`settings-row-label${red?" settings-delete":""}`}>{label}</span>
+          {badge && <span className="settings-new-badge">NEW</span>}
+        </div>
+        {sub && <div className="settings-row-sub">{sub}</div>}
+      </div>
+      {val && <span className="settings-row-val">{val}</span>}
+      {toggle && <SettingsToggle on={toggleVal} locked={locked} onChange={toggleSet || (()=>{})} />}
+      {!toggle && arrow && <span className="settings-row-arrow">›</span>}
+    </div>
+  );
+
+  return (
+    <div className="fade-in" style={{paddingBottom:80}}>
+      <div className="settings-section-hdr">{tx.accessibility}</div>
+      <Row label={tx.mediaAnimations} />
+      <Row label={tx.textSize} />
+      <Row label={tx.subtitlesCaptions} badge />
+
+      <div className="settings-section-hdr">{tx.display}</div>
+      <Row label={tx.darkMode} toggle toggleVal={true} locked />
+      <Row label={tx.notifSound} toggle toggleVal={notifSound} toggleSet={setNotifSound} />
+      <Row label={tx.autoplayVideos} toggle toggleVal={autoplay} toggleSet={setAutoplay} />
+
+      <div className="settings-section-hdr">{tx.advanced}</div>
+      <Row label={tx.saveImageSource} toggle toggleVal={saveImgSrc} toggleSet={setSaveImgSrc} />
+      <Row label={tx.muteVideoDefault} toggle toggleVal={muteVid} toggleSet={setMuteVid} />
+      <Row label={tx.quickCommentJump} toggle toggleVal={quickComment} toggleSet={setQuickComment} />
+      <Row label={tx.recentCommunities} toggle toggleVal={recentComm} toggleSet={setRecentComm} />
+      <Row label={tx.defaultCommentSort} val={tx.sortTop} />
+
+      <div className="settings-section-hdr">{tx.about}</div>
+      <Row label={tx.guidelines} />
+      <Row label={tx.privacyPolicy} />
+      <Row label={tx.userAgreement} />
+      <Row label={tx.acknowledgements} />
+
+      <div className="settings-section-hdr">{tx.support}</div>
+      <Row label={tx.helpCenter} />
+      <Row label={tx.reportBug} />
+      <Row label={tx.reportIssue} />
+      <Row label={tx.deleteAccount} red />
+
+      <div className="settings-version">{tx.version}</div>
+    </div>
+  );
+}
+
 
 function OnboardingScreen({ tx, lang, setLang, onboardStep, setOnboardStep, navigate, selectedCountry, setSelectedCountry }) {
   return (
@@ -1116,6 +1427,10 @@ export default function App() {
       navigate("services", "back");
     } else if (screen === "search") {
       navigate("home", "back");
+    } else if (screen === "account-settings") {
+      navigate("profile", "back");
+    } else if (screen === "app-settings") {
+      navigate("account-settings", "back");
     } else {
       navigate("home", "back");
     }
@@ -1141,7 +1456,7 @@ export default function App() {
     { id:"profile",     label:tx.profile },
   ];
 
-  const isDeepScreen = ["post","feed","kotha-countries","vault","trusted-hands","remittance-radar","search"].includes(screen);
+  const isDeepScreen = ["post","feed","kotha-countries","vault","trusted-hands","remittance-radar","search","account-settings","app-settings"].includes(screen);
 
   const getTopBarKotha = () => {
     if (screen === "post" && selectedPost) return `k/${tx.k[selectedPost.kotha]}`;
@@ -1150,6 +1465,9 @@ export default function App() {
       if (selectedKothaCountry) return `${selectedKothaCountry.flag} ${lang==="bn"?selectedKothaCountry.bn:selectedKothaCountry.en}`;
       return `k/${tx.k[selectedKotha]}`;
     }
+    if (screen === "account-settings") return tx.accountSettings;
+    if (screen === "app-settings") return tx.appSettings;
+    if (screen === "search") return tx.search;
     return null;
   };
   const kothaTitle = getTopBarKotha();
@@ -1184,7 +1502,9 @@ export default function App() {
           {screen === "communities"       && <CommunitiesScreen tx={tx} lang={lang} joinedKothas={joinedKothas} onSelectKotha={handleSelectKotha} />}
           {screen === "post"              && <PostDetailScreen tx={tx} lang={lang} selectedPost={selectedPost} savedPosts={savedPosts} toggleSave={toggleSave} />}
           {screen === "saved"             && <SavedScreen lang={lang} savedPosts={savedPosts} tx={tx} onSelectPost={handleSelectPost} />}
-          {screen === "profile"           && <ProfileScreen tx={tx} lang={lang} onSelectKotha={handleSelectKotha} onLogout={handleLogout} user={user} />}
+          {screen === "profile"           && <ProfileScreen tx={tx} lang={lang} onSelectKotha={handleSelectKotha} onLogout={handleLogout} user={user} navigate={navigate} />}
+          {screen === "account-settings"  && <AccountSettingsScreen tx={tx} lang={lang} user={user} navigate={navigate} />}
+          {screen === "app-settings"      && <AppSettingsScreen tx={tx} lang={lang} />}
           {screen === "services"          && <ServicesScreen tx={tx} lang={lang} navigate={navigate} />}
           {screen === "vault"             && <VaultScreen tx={tx} lang={lang} />}
           {screen === "trusted-hands"     && <TrustedHandsScreen tx={tx} lang={lang} />}
