@@ -1,4 +1,6 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
+import { createClient } from "@supabase/supabase-js";
+const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
 
 // ── Translations ──────────────────────────────────────────────────────────────
 const T = {
@@ -561,23 +563,63 @@ function NavIcon({ id, active }) {
   return null;
 }
 
-function AuthScreen({ onAuth }) {
-  const [mode, setMode] = useState("login");
+function AuthScreen() {
+  const [mode, setMode] = useState("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [signedUp, setSignedUp] = useState(false);
 
-  const handleSubmit = () => {
+  const switchMode = (m) => { setMode(m); setError(""); };
+
+  const handleSignIn = async () => {
     if (!email.trim() || !password.trim()) { setError("Please fill in all fields."); return; }
-    if (mode === "signup" && !name.trim()) { setError("Please enter your name."); return; }
-    if (!email.includes("@")) { setError("Please enter a valid email."); return; }
-    localStorage.setItem("kk_email", email.trim());
-    if (name.trim()) localStorage.setItem("kk_name", name.trim());
-    onAuth(email.trim());
+    setLoading(true); setError("");
+    const { error: err } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    setLoading(false);
+    if (err) setError(err.message);
+    // on success, onAuthStateChange in App updates user state automatically
   };
 
-  const handleKey = (e) => { if (e.key === "Enter") handleSubmit(); };
+  const handleSignUp = async () => {
+    if (!name.trim() || !email.trim() || !password.trim()) { setError("Please fill in all fields."); return; }
+    if (password.length < 6) { setError("Password must be at least 6 characters."); return; }
+    setLoading(true); setError("");
+    const { error: err } = await supabase.auth.signUp({
+      email: email.trim(),
+      password,
+      options: { data: { display_name: name.trim() } },
+    });
+    setLoading(false);
+    if (err) { setError(err.message); return; }
+    localStorage.setItem("kk_name", name.trim());
+    setSignedUp(true);
+  };
+
+  const handleKey = (e) => { if (e.key === "Enter") mode === "signin" ? handleSignIn() : handleSignUp(); };
+
+  if (signedUp) {
+    return (
+      <div className="auth-screen">
+        <div className="auth-logo">
+          <div className="auth-brand">Ki Kotha</div>
+          <div className="auth-bn">কি কথা</div>
+        </div>
+        <div className="auth-card" style={{textAlign:"center"}}>
+          <div style={{fontSize:40,marginBottom:16}}>📬</div>
+          <div style={{fontSize:16,fontWeight:700,color:"var(--text)",marginBottom:10,fontFamily:"var(--font-body)"}}>Check your email</div>
+          <div style={{fontSize:13,color:"var(--muted)",lineHeight:1.7,fontFamily:"var(--font-bn)"}}>
+            We sent a confirmation link to <strong style={{color:"var(--text2)"}}>{email}</strong>. Open it to activate your account, then sign in.
+          </div>
+          <button className="auth-submit" style={{marginTop:20}} onClick={() => { setSignedUp(false); switchMode("signin"); }}>
+            Back to Sign In
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="auth-screen">
@@ -588,17 +630,17 @@ function AuthScreen({ onAuth }) {
       </div>
       <div className="auth-card">
         <div className="auth-tabs">
-          <button className={`auth-tab${mode==="login"?" active":""}`} onClick={() => { setMode("login"); setError(""); }}>Sign In</button>
-          <button className={`auth-tab${mode==="signup"?" active":""}`} onClick={() => { setMode("signup"); setError(""); }}>Sign Up</button>
+          <button className={`auth-tab${mode==="signin"?" active":""}`} onClick={() => switchMode("signin")}>Sign In</button>
+          <button className={`auth-tab${mode==="signup"?" active":""}`} onClick={() => switchMode("signup")}>Sign Up</button>
         </div>
         {mode === "signup" && (
-          <input className="auth-input" placeholder="Full name" value={name} onChange={e => setName(e.target.value)} onKeyDown={handleKey} />
+          <input className="auth-input" placeholder="Full name" value={name} onChange={e => setName(e.target.value)} onKeyDown={handleKey} autoFocus />
         )}
-        <input className="auth-input" type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={handleKey} />
+        <input className="auth-input" type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={handleKey} autoFocus={mode==="signin"} />
         <input className="auth-input" type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={handleKey} />
         {error && <div className="auth-error">{error}</div>}
-        <button className="auth-submit" onClick={handleSubmit}>
-          {mode === "login" ? "Sign In" : "Create Account"}
+        <button className="auth-submit" onClick={mode === "signin" ? handleSignIn : handleSignUp} disabled={loading}>
+          {loading ? "Please wait…" : mode === "signin" ? "Sign In" : "Create Account"}
         </button>
       </div>
     </div>
@@ -1334,7 +1376,8 @@ function RemittanceRadarScreen({ tx, lang }) {
 
 // ── App ───────────────────────────────────────────────────────────────────────
 export default function App() {
-  const [user, setUser] = useState(() => localStorage.getItem("kk_email"));
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [lang, setLang] = useState("en");
   const [screen, setScreen] = useState("home");
   const [navDir, setNavDir] = useState("none");
@@ -1354,6 +1397,23 @@ export default function App() {
   const topRef = useRef(null);
   const tx = T[lang];
 
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const u = session?.user ?? null;
+      setUser(u);
+      if (u?.email) localStorage.setItem("kk_email", u.email);
+      if (u?.user_metadata?.display_name) localStorage.setItem("kk_name", u.user_metadata.display_name);
+      setAuthLoading(false);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const u = session?.user ?? null;
+      setUser(u);
+      if (u?.email) localStorage.setItem("kk_email", u.email);
+      if (u?.user_metadata?.display_name) localStorage.setItem("kk_name", u.user_metadata.display_name);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
   const navigate = useCallback((newScreen, dir = "forward") => {
     setNavDir(dir);
     setScreen(newScreen);
@@ -1361,14 +1421,11 @@ export default function App() {
     if (topRef.current) topRef.current.scrollTop = 0;
   }, []);
 
-  const handleAuth = useCallback((email) => {
-    setUser(email);
-  }, []);
-
-  const handleLogout = useCallback(() => {
+  const handleLogout = useCallback(async () => {
+    await supabase.auth.signOut();
     localStorage.removeItem("kk_email");
     localStorage.removeItem("kk_name");
-    setUser(null);
+    // setUser(null) fires automatically via onAuthStateChange
   }, []);
 
   const handleAsk = async () => {
@@ -1437,12 +1494,22 @@ export default function App() {
   }, [screen, selectedKotha, selectedKothaCountry, navigate]);
 
   // Auth gate
+  if (authLoading) {
+    return (
+      <>
+        <style>{css}</style>
+        <div className="phone" style={{alignItems:"center",justifyContent:"center"}}>
+          <div style={{fontFamily:"var(--font-display)",fontSize:28,color:"var(--muted)",letterSpacing:"-0.5px"}}>Ki Kotha</div>
+        </div>
+      </>
+    );
+  }
   if (!user) {
     return (
       <>
         <style>{css}</style>
         <div className="phone">
-          <AuthScreen onAuth={handleAuth} />
+          <AuthScreen />
         </div>
       </>
     );
@@ -1502,8 +1569,8 @@ export default function App() {
           {screen === "communities"       && <CommunitiesScreen tx={tx} lang={lang} joinedKothas={joinedKothas} onSelectKotha={handleSelectKotha} />}
           {screen === "post"              && <PostDetailScreen tx={tx} lang={lang} selectedPost={selectedPost} savedPosts={savedPosts} toggleSave={toggleSave} />}
           {screen === "saved"             && <SavedScreen lang={lang} savedPosts={savedPosts} tx={tx} onSelectPost={handleSelectPost} />}
-          {screen === "profile"           && <ProfileScreen tx={tx} lang={lang} onSelectKotha={handleSelectKotha} onLogout={handleLogout} user={user} navigate={navigate} />}
-          {screen === "account-settings"  && <AccountSettingsScreen tx={tx} lang={lang} user={user} navigate={navigate} />}
+          {screen === "profile"           && <ProfileScreen tx={tx} lang={lang} onSelectKotha={handleSelectKotha} onLogout={handleLogout} user={user?.email || ""} navigate={navigate} />}
+          {screen === "account-settings"  && <AccountSettingsScreen tx={tx} lang={lang} user={user?.email || ""} navigate={navigate} />}
           {screen === "app-settings"      && <AppSettingsScreen tx={tx} lang={lang} />}
           {screen === "services"          && <ServicesScreen tx={tx} lang={lang} navigate={navigate} />}
           {screen === "vault"             && <VaultScreen tx={tx} lang={lang} />}
