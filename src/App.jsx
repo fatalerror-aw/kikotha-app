@@ -68,6 +68,12 @@ const T = {
     support: "SUPPORT", helpCenter: "Help Center", reportBug: "Report a Bug",
     reportIssue: "Report an Issue", deleteAccount: "Delete Account",
     version: "Ki Kotha 1.0.0",
+    newPost: "New Post", selectKotha: "Select a Kotha", kothaRequired: "Please select a Kotha",
+    postTitleLabel: "Title", postTitlePlaceholder: "What's the talk?",
+    postBodyLabel: "Body", postBodyPlaceholder: "Share more details with the community...",
+    postLangLabel: "Post language", postLangEn: "English", postLangBn: "বাংলা",
+    postSubmit: "Post", posting: "Posting...", postErrorMsg: "Failed to post. Please try again.",
+    titleRequired: "Title is required", bodyRequired: "Body must be at least 10 characters",
     chooseCountry: "Choose a destination", signIn: "Sign In", signUp: "Sign Up",
     emailLabel: "Email", passwordLabel: "Password", nameLabel: "Full name",
     createAccount: "Create Account", authTagline: "The global Bangladeshi community",
@@ -137,6 +143,12 @@ const T = {
     support: "সহায়তা", helpCenter: "সাহায্য কেন্দ্র", reportBug: "বাগ রিপোর্ট",
     reportIssue: "সমস্যা রিপোর্ট", deleteAccount: "অ্যাকাউন্ট মুছুন",
     version: "কি কথা ১.০.০",
+    newPost: "নতুন পোস্ট", selectKotha: "একটি কোথা বেছে নিন", kothaRequired: "দয়া করে একটি কোথা বেছে নিন",
+    postTitleLabel: "শিরোনাম", postTitlePlaceholder: "কি কথা?",
+    postBodyLabel: "বিবরণ", postBodyPlaceholder: "সম্প্রদায়ের সাথে আরও বিস্তারিত শেয়ার করুন...",
+    postLangLabel: "পোস্টের ভাষা", postLangEn: "English", postLangBn: "বাংলা",
+    postSubmit: "পোস্ট করুন", posting: "পোস্ট হচ্ছে...", postErrorMsg: "পোস্ট করা সম্ভব হয়নি। আবার চেষ্টা করুন।",
+    titleRequired: "শিরোনাম প্রয়োজন", bodyRequired: "বিবরণ কমপক্ষে ১০ অক্ষর হতে হবে",
     chooseCountry: "গন্তব্য বেছে নিন", signIn: "সাইন ইন", signUp: "সাইন আপ",
     emailLabel: "ইমেইল", passwordLabel: "পাসওয়ার্ড", nameLabel: "পুরো নাম",
     createAccount: "অ্যাকাউন্ট তৈরি করুন", authTagline: "বিশ্বব্যাপী বাংলাদেশি সম্প্রদায়",
@@ -426,6 +438,30 @@ const css = `
   .empty-icon{font-size:48px;margin-bottom:12px;}
   .empty-text{font-size:14px;color:var(--muted);font-family:var(--font-bn);}
 
+  /* FAB */
+  .fab{position:fixed;bottom:88px;right:16px;width:52px;height:52px;border-radius:50%;background:var(--gold);border:none;color:#0A0A0A;font-size:28px;font-weight:300;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:90;box-shadow:0 4px 20px rgba(184,150,46,0.45);line-height:1;transition:transform 0.15s;}
+  .fab:active{transform:scale(0.92);}
+
+  /* Create Post */
+  .create-post-form{padding:16px 16px 32px;}
+  .create-post-label{font-size:11px;font-weight:600;letter-spacing:0.5px;color:var(--text2);font-family:var(--font-body);margin-bottom:6px;display:block;margin-top:4px;}
+  .create-post-select{width:100%;background:var(--card3);border:1px solid var(--border2);color:var(--text);font-size:14px;font-family:var(--font-bn);padding:12px 14px;border-radius:12px;outline:none;margin-bottom:16px;appearance:none;-webkit-appearance:none;cursor:pointer;}
+  .create-post-select:focus{border-color:var(--gold-border);}
+  .create-post-input{width:100%;background:var(--card3);border:1px solid var(--border2);color:var(--text);font-size:14px;font-family:var(--font-bn);padding:12px 14px;border-radius:12px;outline:none;transition:border-color 0.2s;}
+  .create-post-input:focus{border-color:var(--gold-border);}
+  .create-post-input::placeholder{color:var(--muted2);}
+  .create-post-textarea{width:100%;background:var(--card3);border:1px solid var(--border2);color:var(--text);font-size:14px;font-family:var(--font-bn);padding:12px 14px;border-radius:12px;outline:none;resize:none;line-height:1.6;transition:border-color 0.2s;}
+  .create-post-textarea:focus{border-color:var(--gold-border);}
+  .create-post-textarea::placeholder{color:var(--muted2);}
+  .char-count{font-size:10px;color:var(--muted2);text-align:right;margin-bottom:16px;margin-top:4px;font-family:var(--font-body);}
+  .char-count.warn{color:#E57373;}
+  .lang-toggle-row{display:flex;gap:8px;margin-bottom:20px;}
+  .lang-toggle-btn{flex:1;padding:10px;background:var(--card3);border:1px solid var(--border2);color:var(--muted);font-size:13px;font-family:var(--font-bn);border-radius:10px;cursor:pointer;transition:all 0.15s;}
+  .lang-toggle-btn.active{background:var(--gold-dim);border-color:var(--gold-border);color:var(--gold2);}
+  .post-submit-btn{width:100%;padding:14px;background:var(--gold);color:#0A0A0A;font-size:15px;font-weight:700;border:none;border-radius:14px;cursor:pointer;font-family:var(--font-body);transition:opacity 0.2s;margin-top:4px;}
+  .post-submit-btn:disabled{opacity:0.35;cursor:default;}
+  .post-error{font-size:12px;color:#E57373;margin-bottom:14px;font-family:var(--font-bn);padding:10px 12px;background:#1A0A0A;border-radius:8px;border:1px solid #3A1A1A;}
+
   /* Services */
   .service-card{display:flex;align-items:center;gap:14px;margin:0 10px 8px;padding:16px 14px;background:var(--card2);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:background 0.15s;}
   .service-card:active{background:var(--card3);}
@@ -521,15 +557,18 @@ async function askAI(question, lang) {
 function usePosts(kothaId = null) {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [tick, setTick] = useState(0);
+  const refetch = () => setTick(t => t + 1);
   useEffect(() => {
+    setLoading(true);
     let query = supabase.from("posts").select("*").order("created_at", { ascending: false });
-    if (kothaId) query = query.eq("kotha", kothaId);
+    if (kothaId) query = query.eq("kotha_id", kothaId);
     query.then(({ data, error }) => {
       if (!error && data) setPosts(data);
       setLoading(false);
     });
-  }, [kothaId]);
-  return { posts, loading, setPosts };
+  }, [kothaId, tick]);
+  return { posts, loading, setPosts, refetch };
 }
 
 function useComments(postId) {
@@ -683,7 +722,7 @@ function PostCard({ post, lang, tx, onSelect }) {
       <div className="post-meta">
         <div className="avatar">{av}</div>
         <span className="post-author">{flag} {name}{badge && <span className="verified"> ✓</span>}</span>
-        <span className="post-kotha">k/{tx.k[post.kotha]}</span>
+        <span className="post-kotha">k/{tx.k[post.kotha_id || post.kotha]}</span>
         <span className="post-time">{post.time || new Date(post.created_at).toLocaleDateString()}</span>
       </div>
       <div style={{marginBottom:6}}>
@@ -713,7 +752,7 @@ function StoryRow({ joinedKothas, tx, onSelectKotha }) {
   );
 }
 
-function HomeScreen({ tx, lang, navigate, joinedKothas, onSelectPost, onSelectKotha }) {
+function HomeScreen({ tx, lang, navigate, joinedKothas, onSelectPost, onSelectKotha, onCreatePost }) {
   const { posts, loading } = usePosts();
   return (
     <div className="fade-in">
@@ -725,11 +764,12 @@ function HomeScreen({ tx, lang, navigate, joinedKothas, onSelectPost, onSelectKo
       {loading && <div style={{padding:"24px",textAlign:"center",color:"var(--muted)",fontFamily:"var(--font-bn)",fontSize:13}}>Loading posts…</div>}
       {!loading && posts.length === 0 && <div style={{padding:"32px 16px",textAlign:"center",color:"var(--muted)",fontFamily:"var(--font-bn)",fontSize:13}}>No posts yet. Be the first to post!</div>}
       {posts.map(p => <PostCard key={p.id} post={p} lang={lang} tx={tx} onSelect={onSelectPost} />)}
+      <button className="fab" onClick={() => onCreatePost(null)}>+</button>
     </div>
   );
 }
 
-function FeedScreen({ tx, lang, selectedKotha, selectedKothaCountry, joinedKothas, activeFilter, setActiveFilter, question, setQuestion, handleAsk, aiThinking, aiResponse, feedbackGiven, setFeedbackGiven, toggleJoin, onSelectPost }) {
+function FeedScreen({ tx, lang, selectedKotha, selectedKothaCountry, joinedKothas, activeFilter, setActiveFilter, question, setQuestion, handleAsk, aiThinking, aiResponse, feedbackGiven, setFeedbackGiven, toggleJoin, onSelectPost, onCreatePost }) {
   const filters = [tx.filterHot, tx.filterNew, tx.filterQ, tx.filterNews, tx.filterWarn];
   const kotha = selectedKotha ? KOTHAS.find(k => k.id === selectedKotha) : null;
   const { posts: feedPosts, loading: feedLoading } = usePosts(selectedKotha);
@@ -785,6 +825,7 @@ function FeedScreen({ tx, lang, selectedKotha, selectedKothaCountry, joinedKotha
         </div>
       )}
       {filteredPosts.map(p => <PostCard key={p.id} post={p} lang={lang} tx={tx} onSelect={onSelectPost} />)}
+      <button className="fab" onClick={() => onCreatePost(selectedKotha)}>+</button>
     </div>
   );
 }
@@ -1409,6 +1450,84 @@ function RemittanceRadarScreen({ tx, lang }) {
   );
 }
 
+function CreatePostScreen({ tx, lang, initialKothaId, navigate, setSelectedKotha }) {
+  const [kothaId, setKothaId]   = useState(initialKothaId || "");
+  const [title, setTitle]       = useState("");
+  const [body, setBody]         = useState("");
+  const [postLang, setPostLang] = useState(lang);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError]       = useState("");
+
+  const titleOk = title.trim().length > 0 && title.length <= 200;
+  const bodyOk  = body.trim().length >= 10 && body.length <= 2000;
+  const kothaOk = !!kothaId;
+  const valid   = titleOk && bodyOk && kothaOk;
+
+  const handleSubmit = async () => {
+    if (!valid || submitting) return;
+    setSubmitting(true);
+    setError("");
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    const { error: err } = await supabase.from("posts").insert({
+      title:    title.trim(),
+      body:     body.trim(),
+      kotha_id: kothaId,
+      user_id:  authUser.id,
+      lang:     postLang,
+    });
+    if (err) {
+      setSubmitting(false);
+      setError(err.message || tx.postErrorMsg);
+      return;
+    }
+    setSelectedKotha(kothaId);
+    navigate("feed", "back");
+  };
+
+  return (
+    <div className="fade-in create-post-form">
+      <label className="create-post-label">{tx.selectKotha} *</label>
+      <select className="create-post-select" value={kothaId} onChange={e => setKothaId(e.target.value)}>
+        <option value="">{tx.selectKotha}</option>
+        {KOTHAS.map(k => <option key={k.id} value={k.id}>{tx.k[k.id]}</option>)}
+      </select>
+
+      <label className="create-post-label">{tx.postTitleLabel} *</label>
+      <input
+        className="create-post-input"
+        placeholder={tx.postTitlePlaceholder}
+        value={title}
+        maxLength={200}
+        onChange={e => setTitle(e.target.value)}
+      />
+      <div className={`char-count${title.length > 180 ? " warn" : ""}`}>{title.length}/200</div>
+
+      <label className="create-post-label">{tx.postBodyLabel} *</label>
+      <textarea
+        className="create-post-textarea"
+        rows={8}
+        placeholder={tx.postBodyPlaceholder}
+        value={body}
+        maxLength={2000}
+        onChange={e => setBody(e.target.value)}
+      />
+      <div className={`char-count${body.length > 1800 ? " warn" : ""}`}>{body.length}/2000</div>
+
+      <label className="create-post-label">{tx.postLangLabel}</label>
+      <div className="lang-toggle-row">
+        <button className={`lang-toggle-btn${postLang==="en"?" active":""}`} onClick={() => setPostLang("en")}>{tx.postLangEn}</button>
+        <button className={`lang-toggle-btn${postLang==="bn"?" active":""}`} onClick={() => setPostLang("bn")}>{tx.postLangBn}</button>
+      </div>
+
+      {error && <div className="post-error">{error}</div>}
+
+      <button className="post-submit-btn" onClick={handleSubmit} disabled={!valid || submitting}>
+        {submitting ? tx.posting : tx.postSubmit}
+      </button>
+    </div>
+  );
+}
+
 // ── App ───────────────────────────────────────────────────────────────────────
 export default function App() {
   const [user, setUser] = useState(null);
@@ -1429,6 +1548,7 @@ export default function App() {
   const [feedbackGiven, setFeedbackGiven] = useState(false);
   const [savedPosts, setSavedPosts] = useState([]);
   const [joinedKothas, setJoinedKothas] = useState(["immigration","lifeabroad","canada"]);
+  const [createPostFromKotha, setCreatePostFromKotha] = useState(null);
   const topRef = useRef(null);
   const tx = T[lang];
 
@@ -1498,6 +1618,11 @@ export default function App() {
     navigate("feed");
   }, [navigate]);
 
+  const handleOpenCreatePost = useCallback((kothaId = null) => {
+    setCreatePostFromKotha(kothaId);
+    navigate("create-post", "forward");
+  }, [navigate]);
+
   const handleBack = useCallback(() => {
     if (screen === "post") {
       setSelectedPost(null);
@@ -1523,10 +1648,12 @@ export default function App() {
       navigate("profile", "back");
     } else if (screen === "app-settings") {
       navigate("account-settings", "back");
+    } else if (screen === "create-post") {
+      navigate(createPostFromKotha ? "feed" : "home", "back");
     } else {
       navigate("home", "back");
     }
-  }, [screen, selectedKotha, selectedKothaCountry, navigate]);
+  }, [screen, selectedKotha, selectedKothaCountry, createPostFromKotha, navigate]);
 
   // Auth gate
   if (authLoading) {
@@ -1558,7 +1685,7 @@ export default function App() {
     { id:"profile",     label:tx.profile },
   ];
 
-  const isDeepScreen = ["post","feed","kotha-countries","vault","trusted-hands","remittance-radar","search","account-settings","app-settings"].includes(screen);
+  const isDeepScreen = ["post","feed","kotha-countries","vault","trusted-hands","remittance-radar","search","account-settings","app-settings","create-post"].includes(screen);
 
   const getTopBarKotha = () => {
     if (screen === "post" && selectedPost) return `k/${tx.k[selectedPost.kotha]}`;
@@ -1570,6 +1697,7 @@ export default function App() {
     if (screen === "account-settings") return tx.accountSettings;
     if (screen === "app-settings") return tx.appSettings;
     if (screen === "search") return tx.search;
+    if (screen === "create-post") return tx.newPost;
     return null;
   };
   const kothaTitle = getTopBarKotha();
@@ -1597,9 +1725,10 @@ export default function App() {
 
         <div key={screenKey} className={`screen slide-${navDir}`} ref={topRef}>
           {screen === "onboarding"        && <OnboardingScreen tx={tx} lang={lang} setLang={setLang} onboardStep={onboardStep} setOnboardStep={setOnboardStep} navigate={navigate} selectedCountry={selectedCountry} setSelectedCountry={setSelectedCountry} />}
-          {screen === "home"              && <HomeScreen tx={tx} lang={lang} navigate={navigate} joinedKothas={joinedKothas} onSelectPost={handleSelectPost} onSelectKotha={handleSelectKotha} />}
+          {screen === "home"              && <HomeScreen tx={tx} lang={lang} navigate={navigate} joinedKothas={joinedKothas} onSelectPost={handleSelectPost} onSelectKotha={handleSelectKotha} onCreatePost={handleOpenCreatePost} />}
           {screen === "search"            && <SearchScreen lang={lang} tx={tx} onSelectPost={handleSelectPost} />}
-          {screen === "feed"              && <FeedScreen tx={tx} lang={lang} selectedKotha={selectedKotha} selectedKothaCountry={selectedKothaCountry} joinedKothas={joinedKothas} activeFilter={activeFilter} setActiveFilter={setActiveFilter} question={question} setQuestion={setQuestion} handleAsk={handleAsk} aiThinking={aiThinking} aiResponse={aiResponse} feedbackGiven={feedbackGiven} setFeedbackGiven={setFeedbackGiven} toggleJoin={toggleJoin} onSelectPost={handleSelectPost} />}
+          {screen === "feed"              && <FeedScreen tx={tx} lang={lang} selectedKotha={selectedKotha} selectedKothaCountry={selectedKothaCountry} joinedKothas={joinedKothas} activeFilter={activeFilter} setActiveFilter={setActiveFilter} question={question} setQuestion={setQuestion} handleAsk={handleAsk} aiThinking={aiThinking} aiResponse={aiResponse} feedbackGiven={feedbackGiven} setFeedbackGiven={setFeedbackGiven} toggleJoin={toggleJoin} onSelectPost={handleSelectPost} onCreatePost={handleOpenCreatePost} />}
+          {screen === "create-post"       && <CreatePostScreen tx={tx} lang={lang} initialKothaId={createPostFromKotha} navigate={navigate} setSelectedKotha={setSelectedKotha} />}
           {screen === "kotha-countries"   && <KothaCountriesScreen tx={tx} lang={lang} onSelectCountry={handleSelectCountry} />}
           {screen === "communities"       && <CommunitiesScreen tx={tx} lang={lang} joinedKothas={joinedKothas} onSelectKotha={handleSelectKotha} />}
           {screen === "post"              && <PostDetailScreen tx={tx} lang={lang} selectedPost={selectedPost} savedPosts={savedPosts} toggleSave={toggleSave} />}
