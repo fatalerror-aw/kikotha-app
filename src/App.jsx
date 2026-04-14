@@ -518,6 +518,29 @@ async function askAI(question, lang) {
   }
 }
 
+function usePosts(kothaId = null) {
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    let query = supabase.from("posts").select("*").order("created_at", { ascending: false });
+    if (kothaId) query = query.eq("kotha", kothaId);
+    query.then(({ data, error }) => {
+      if (!error && data) setPosts(data);
+      setLoading(false);
+    });
+  }, [kothaId]);
+  return { posts, loading, setPosts };
+}
+
+function useComments(postId) {
+  const [comments, setComments] = useState([]);
+  useEffect(() => {
+    if (!postId) return;
+    supabase.from("comments").select("*").eq("post_id", postId).order("created_at", { ascending: true }).then(({ data }) => { if (data) setComments(data); });
+  }, [postId]);
+  return { comments, setComments };
+}
+
 // ── Components (all outside App to prevent remounts) ─────────────────────────
 
 function NavIcon({ id, active }) {
@@ -648,17 +671,20 @@ function AuthScreen() {
 }
 
 function PostCard({ post, lang, tx, onSelect }) {
-  const title = lang==="bn" ? post.titleBn : post.titleEn;
-  const name  = lang==="bn" ? post.nameBn  : post.name;
+  const title = post.title || (lang==="bn" ? post.titleBn : post.titleEn);
+  const name  = post.author_name || (lang==="bn" ? post.nameBn : post.name);
+  const av    = post.author_av || post.av || "??";
+  const flag  = post.author_flag || post.flag || "🌐";
+  const badge = post.author_badge || post.badge || false;
   const type  = lang==="bn" ? tx[`type${typeClass(post.type)}`] || post.type : post.type;
   const tc    = typeClass(post.type);
   return (
     <div className="post-card fade-in" onClick={() => onSelect(post)}>
       <div className="post-meta">
-        <div className="avatar">{post.av}</div>
-        <span className="post-author">{post.flag} {name}{post.badge && <span className="verified"> ✓</span>}</span>
+        <div className="avatar">{av}</div>
+        <span className="post-author">{flag} {name}{badge && <span className="verified"> ✓</span>}</span>
         <span className="post-kotha">k/{tx.k[post.kotha]}</span>
-        <span className="post-time">{post.time}</span>
+        <span className="post-time">{post.time || new Date(post.created_at).toLocaleDateString()}</span>
       </div>
       <div style={{marginBottom:6}}>
         <span className={`type-badge type-${tc}`}>{type}</span>
@@ -666,7 +692,7 @@ function PostCard({ post, lang, tx, onSelect }) {
       <div className="post-title">{title}</div>
       <div className="post-footer">
         <span className="reactions">{post.reactions}</span>
-        <span className="comment-count">💬 {post.comments}</span>
+        <span className="comment-count">💬 {post.comment_count || 0}</span>
       </div>
     </div>
   );
@@ -688,6 +714,7 @@ function StoryRow({ joinedKothas, tx, onSelectKotha }) {
 }
 
 function HomeScreen({ tx, lang, navigate, joinedKothas, onSelectPost, onSelectKotha }) {
+  const { posts, loading } = usePosts();
   return (
     <div className="fade-in">
       <StoryRow joinedKothas={joinedKothas} tx={tx} onSelectKotha={onSelectKotha} />
@@ -695,7 +722,9 @@ function HomeScreen({ tx, lang, navigate, joinedKothas, onSelectPost, onSelectKo
         <span className="section-title">{tx.trending}</span>
         <span className="section-link" onClick={() => navigate("communities")}>{tx.explore}</span>
       </div>
-      {POSTS.map(p => <PostCard key={p.id} post={p} lang={lang} tx={tx} onSelect={onSelectPost} />)}
+      {loading && <div style={{padding:"24px",textAlign:"center",color:"var(--muted)",fontFamily:"var(--font-bn)",fontSize:13}}>Loading posts…</div>}
+      {!loading && posts.length === 0 && <div style={{padding:"32px 16px",textAlign:"center",color:"var(--muted)",fontFamily:"var(--font-bn)",fontSize:13}}>No posts yet. Be the first to post!</div>}
+      {posts.map(p => <PostCard key={p.id} post={p} lang={lang} tx={tx} onSelect={onSelectPost} />)}
     </div>
   );
 }
@@ -703,7 +732,8 @@ function HomeScreen({ tx, lang, navigate, joinedKothas, onSelectPost, onSelectKo
 function FeedScreen({ tx, lang, selectedKotha, selectedKothaCountry, joinedKothas, activeFilter, setActiveFilter, question, setQuestion, handleAsk, aiThinking, aiResponse, feedbackGiven, setFeedbackGiven, toggleJoin, onSelectPost }) {
   const filters = [tx.filterHot, tx.filterNew, tx.filterQ, tx.filterNews, tx.filterWarn];
   const kotha = selectedKotha ? KOTHAS.find(k => k.id === selectedKotha) : null;
-  const filteredPosts = selectedKotha ? POSTS.filter(p => p.kotha === selectedKotha) : POSTS;
+  const { posts: feedPosts, loading: feedLoading } = usePosts(selectedKotha);
+  const filteredPosts = feedPosts;
   const isJoined = selectedKotha ? joinedKothas.includes(selectedKotha) : false;
   return (
     <div className="fade-in">
@@ -804,18 +834,23 @@ function CommunitiesScreen({ tx, lang, joinedKothas, onSelectKotha }) {
 
 function PostDetailScreen({ tx, lang, selectedPost, savedPosts, toggleSave }) {
   const [commentText, setCommentText] = useState("");
-  const [localComments, setLocalComments] = useState(COMMENTS);
+  const { comments: localComments, setComments: setLocalComments } = useComments(selectedPost?.id);
 
-  const handleAddComment = () => {
+  const handleAddComment = async () => {
     const text = commentText.trim();
     if (!text) return;
+    const { data: { user } } = await supabase.auth.getUser();
     const newComment = {
-      av: "ME", flag: "🌐", name: localStorage.getItem("kk_name") || "You",
-      nameBn: localStorage.getItem("kk_name") || "আপনি",
-      badge: false, textEn: text, textBn: text, reactions: "",
+      post_id: selectedPost.id,
+      author_id: user.id,
+      author_name: localStorage.getItem("kk_name") || "Anonymous",
+      author_av: "ME",
+      author_flag: "🌐",
+      author_badge: false,
+      body: text,
     };
-    setLocalComments(prev => [...prev, newComment]);
-    setCommentText("");
+    const { data, error } = await supabase.from("comments").insert(newComment).select().single();
+    if (!error && data) { setLocalComments(prev => [...prev, data]); setCommentText(""); }
   };
 
   if (!selectedPost) return null;
@@ -877,10 +912,10 @@ function PostDetailScreen({ tx, lang, selectedPost, savedPosts, toggleSave }) {
       {localComments.map((c,i) => (
         <div key={i} className="comment">
           <div className="post-meta">
-            <div className="avatar" style={{width:24,height:24,fontSize:9}}>{c.av}</div>
-            <span className="post-author" style={{fontSize:11}}>{c.flag} {lang==="bn"?c.nameBn:c.name}{c.badge&&<span className="verified"> ✓</span>}</span>
+            <div className="avatar" style={{width:24,height:24,fontSize:9}}>{c.author_av || c.av}</div>
+            <span className="post-author" style={{fontSize:11}}>{c.author_flag || c.flag} {c.author_name || (lang==="bn"?c.nameBn:c.name)}{(c.author_badge||c.badge)&&<span className="verified"> ✓</span>}</span>
           </div>
-          <div className="comment-text">{lang==="bn"?c.textBn:c.textEn}</div>
+          <div className="comment-text">{c.body || (lang==="bn"?c.textBn:c.textEn)}</div>
           {c.reactions && <div className="comment-react">{c.reactions}</div>}
         </div>
       ))}
