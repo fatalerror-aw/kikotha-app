@@ -752,7 +752,7 @@ function StoryRow({ joinedKothas, tx, onSelectKotha }) {
   );
 }
 
-function HomeScreen({ tx, lang, navigate, joinedKothas, onSelectPost, onSelectKotha, onCreatePost }) {
+function HomeScreen({ tx, lang, navigate, joinedKothas, onSelectPost, onSelectKotha }) {
   const { posts, loading } = usePosts();
   return (
     <div className="fade-in">
@@ -764,7 +764,6 @@ function HomeScreen({ tx, lang, navigate, joinedKothas, onSelectPost, onSelectKo
       {loading && <div style={{padding:"24px",textAlign:"center",color:"var(--muted)",fontFamily:"var(--font-bn)",fontSize:13}}>Loading posts…</div>}
       {!loading && posts.length === 0 && <div style={{padding:"32px 16px",textAlign:"center",color:"var(--muted)",fontFamily:"var(--font-bn)",fontSize:13}}>No posts yet. Be the first to post!</div>}
       {posts.map(p => <PostCard key={p.id} post={p} lang={lang} tx={tx} onSelect={onSelectPost} />)}
-      <button className="fab" onClick={() => onCreatePost(null)}>+</button>
     </div>
   );
 }
@@ -1486,12 +1485,6 @@ function CreatePostScreen({ tx, lang, initialKothaId, navigate, setSelectedKotha
 
   return (
     <div className="fade-in create-post-form">
-      <label className="create-post-label">{tx.selectKotha} *</label>
-      <select className="create-post-select" value={kothaId} onChange={e => setKothaId(e.target.value)}>
-        <option value="">{tx.selectKotha}</option>
-        {KOTHAS.map(k => <option key={k.id} value={k.id}>{tx.k[k.id]}</option>)}
-      </select>
-
       <label className="create-post-label">{tx.postTitleLabel} *</label>
       <input
         className="create-post-input"
@@ -1725,7 +1718,7 @@ export default function App() {
 
         <div key={screenKey} className={`screen slide-${navDir}`} ref={topRef}>
           {screen === "onboarding"        && <OnboardingScreen tx={tx} lang={lang} setLang={setLang} onboardStep={onboardStep} setOnboardStep={setOnboardStep} navigate={navigate} selectedCountry={selectedCountry} setSelectedCountry={setSelectedCountry} />}
-          {screen === "home"              && <HomeScreen tx={tx} lang={lang} navigate={navigate} joinedKothas={joinedKothas} onSelectPost={handleSelectPost} onSelectKotha={handleSelectKotha} onCreatePost={handleOpenCreatePost} />}
+          {screen === "home"              && <HomeScreen tx={tx} lang={lang} navigate={navigate} joinedKothas={joinedKothas} onSelectPost={handleSelectPost} onSelectKotha={handleSelectKotha} />}
           {screen === "search"            && <SearchScreen lang={lang} tx={tx} onSelectPost={handleSelectPost} />}
           {screen === "feed"              && <FeedScreen tx={tx} lang={lang} selectedKotha={selectedKotha} selectedKothaCountry={selectedKothaCountry} joinedKothas={joinedKothas} activeFilter={activeFilter} setActiveFilter={setActiveFilter} question={question} setQuestion={setQuestion} handleAsk={handleAsk} aiThinking={aiThinking} aiResponse={aiResponse} feedbackGiven={feedbackGiven} setFeedbackGiven={setFeedbackGiven} toggleJoin={toggleJoin} onSelectPost={handleSelectPost} onCreatePost={handleOpenCreatePost} />}
           {screen === "create-post"       && <CreatePostScreen tx={tx} lang={lang} initialKothaId={createPostFromKotha} navigate={navigate} setSelectedKotha={setSelectedKotha} />}
