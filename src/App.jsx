@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
-import { createClient } from "@supabase/supabase-js";
 import { sanitizePost, sanitizeComment, sanitizeForAI, LIMITS } from "./lib/sanitize.js";
-const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
+import { supabase } from "./lib/supabase.js";
+import { useMemberships, useKothaMembership } from "./hooks/useMembership.js";
 
 // ── Translations ──────────────────────────────────────────────────────────────
 const T = {
@@ -41,6 +41,11 @@ const T = {
     achievements: (n) => `${n} achievements`, addSocialLink: "Add Social Link",
     tabPosts: "Posts", tabComments: "Comments", tabAbout: "About",
     noPosts: "No posts yet", noComments: "No comments yet",
+    joinKotha: "Join", joinedKotha: "Joined ✓", leaveKotha: "Leave",
+    leaveConfirm: (name) => `Leave ${name}?`, leaveYes: "Yes, Leave", leaveCancel: "Cancel",
+    memberCount: (n) => `${n} members`,
+    notifyNewPosts: "New posts", notifyReplies: "Replies to me",
+    kothaNotifications: "Kotha Notifications", noJoinedKothas: "You haven't joined any Kothas yet",
     changeUsername: "Change Username", usernameLabel: "Username",
     usernamePlaceholder: "letters, numbers, underscores",
     usernameAvailable: "✓ Available", usernameTaken: "✗ Already taken",
@@ -120,6 +125,11 @@ const T = {
     sendMoney: "টাকা পাঠান",
     karma: "কর্ম", activeIn: "সক্রিয়", kothaCount: (n) => `${n}টি কোথায় যোগ দিয়েছেন`,
     achievements: (n) => `${n}টি অর্জন`, addSocialLink: "সোশ্যাল লিঙ্ক যোগ করুন",
+    joinKotha: "যোগ দিন", joinedKotha: "যোগ দিয়েছেন ✓", leaveKotha: "ত্যাগ করুন",
+    leaveConfirm: (name) => `${name} ত্যাগ করবেন?`, leaveYes: "হ্যাঁ, ত্যাগ করুন", leaveCancel: "বাতিল",
+    memberCount: (n) => `${n} সদস্য`,
+    notifyNewPosts: "নতুন পোস্ট", notifyReplies: "আমার উত্তর",
+    kothaNotifications: "কোথা বিজ্ঞপ্তি", noJoinedKothas: "কোনো কোথায় যোগ দেননি",
     changeUsername: "ইউজারনেম পরিবর্তন", usernameLabel: "ইউজারনেম",
     usernamePlaceholder: "অক্ষর, সংখ্যা, আন্ডারস্কোর",
     usernameAvailable: "✓ পাওয়া যাচ্ছে", usernameTaken: "✗ ইতিমধ্যে ব্যবহৃত",
@@ -356,8 +366,18 @@ const css = `
   .kotha-hdr-top{display:flex;justify-content:space-between;align-items:center;}
   .kotha-hdr-name{font-family:var(--font-display);font-size:20px;color:var(--text);font-weight:700;}
   .kotha-hdr-meta{font-size:11px;color:var(--muted);margin-top:2px;font-family:var(--font-bn);}
-  .join-btn{background:var(--card3);border:1px solid var(--border2);color:var(--text2);font-size:11px;padding:6px 14px;border-radius:16px;cursor:pointer;font-weight:600;font-family:var(--font-bn);}
-  .join-btn.joined{color:var(--muted);}
+  @keyframes goldPulse{0%{box-shadow:0 0 0 0 rgba(184,150,46,0.5)}70%{box-shadow:0 0 0 8px rgba(184,150,46,0)}100%{box-shadow:0 0 0 0 rgba(184,150,46,0)}}
+  .join-btn{border:1px solid var(--gold);background:transparent;color:var(--gold);font-size:12px;padding:6px 14px;border-radius:16px;cursor:pointer;font-weight:600;font-family:var(--font-bn);transition:opacity 0.15s;}
+  .join-btn.joined{background:var(--gold);color:#0A0A0A;border-color:var(--gold);}
+  .join-btn.joined:active{background:var(--gold2);}
+  .join-btn.toggling{opacity:0.45;pointer-events:none;}
+  .join-btn.pulse{animation:goldPulse 0.5s ease-out;}
+  .leave-confirm{padding:10px 16px;background:var(--card3);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .leave-confirm-text{flex:1;font-size:12px;color:var(--text2);font-family:var(--font-bn);}
+  .leave-yes-btn{background:#b71c1c;color:#fff;border:none;border-radius:12px;padding:5px 12px;font-size:11px;font-family:var(--font-bn);font-weight:600;cursor:pointer;}
+  .leave-cancel-btn{background:var(--card);color:var(--text2);border:1px solid var(--border2);border-radius:12px;padding:5px 12px;font-size:11px;font-family:var(--font-bn);cursor:pointer;}
+  .kotha-hdr-member-count{font-size:10px;color:var(--muted);font-family:var(--font-bn);margin-top:1px;}
+  .kotha-joined-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--gold);margin-right:3px;vertical-align:middle;}
 
   /* Communities grid */
   .kotha-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 12px 8px;}
@@ -366,7 +386,7 @@ const css = `
   .kotha-icon{font-size:28px;margin-bottom:8px;display:block;}
   .kotha-name{font-size:12px;font-weight:600;color:var(--text);font-family:var(--font-bn);margin-bottom:3px;}
   .kotha-members{font-size:10px;color:var(--muted);font-family:var(--font-bn);}
-  .kotha-joined-tag{position:absolute;top:8px;right:8px;font-size:9px;background:var(--border);color:var(--text2);padding:2px 6px;border-radius:8px;font-family:var(--font-bn);}
+  .kotha-joined-tag{position:absolute;top:8px;right:8px;width:8px;height:8px;border-radius:50%;background:var(--gold);}
 
   /* Country list (Kotha tree) */
   .country-list{padding:0 12px 12px;}
@@ -795,8 +815,8 @@ function PostCard({ post, lang, tx, onSelect }) {
   );
 }
 
-function StoryRow({ joinedKothas, tx, onSelectKotha }) {
-  const joined = KOTHAS.filter(k => joinedKothas.includes(k.id));
+function StoryRow({ memberKothaIds, tx, onSelectKotha }) {
+  const joined = KOTHAS.filter(k => memberKothaIds.has(k.id));
   if (!joined.length) return null;
   return (
     <div className="story-row">
@@ -810,11 +830,11 @@ function StoryRow({ joinedKothas, tx, onSelectKotha }) {
   );
 }
 
-function HomeScreen({ tx, lang, navigate, joinedKothas, onSelectPost, onSelectKotha }) {
+function HomeScreen({ tx, lang, navigate, memberKothaIds, onSelectPost, onSelectKotha }) {
   const { posts, loading } = usePosts();
   return (
     <div className="fade-in">
-      <StoryRow joinedKothas={joinedKothas} tx={tx} onSelectKotha={onSelectKotha} />
+      <StoryRow memberKothaIds={memberKothaIds} tx={tx} onSelectKotha={onSelectKotha} />
       <div className="section-hdr">
         <span className="section-title">{tx.trending}</span>
         <span className="section-link" onClick={() => navigate("communities")}>{tx.explore}</span>
@@ -826,12 +846,25 @@ function HomeScreen({ tx, lang, navigate, joinedKothas, onSelectPost, onSelectKo
   );
 }
 
-function FeedScreen({ tx, lang, selectedKotha, selectedKothaCountry, joinedKothas, activeFilter, setActiveFilter, question, setQuestion, handleAsk, aiThinking, aiResponse, feedbackGiven, setFeedbackGiven, toggleJoin, onSelectPost, onCreatePost }) {
+function FeedScreen({ tx, lang, userId, selectedKotha, selectedKothaCountry, activeFilter, setActiveFilter, question, setQuestion, handleAsk, aiThinking, aiResponse, feedbackGiven, setFeedbackGiven, onSelectPost, onCreatePost }) {
   const filters = [tx.filterHot, tx.filterNew, tx.filterQ, tx.filterNews, tx.filterWarn];
   const kotha = selectedKotha ? KOTHAS.find(k => k.id === selectedKotha) : null;
   const { posts: feedPosts, loading: feedLoading } = usePosts(selectedKotha);
-  const filteredPosts = feedPosts;
-  const isJoined = selectedKotha ? joinedKothas.includes(selectedKotha) : false;
+  const { isMember, toggling, join, leave, memberCount } = useKothaMembership(selectedKotha, userId);
+  const [leaveConfirm, setLeaveConfirm] = useState(false);
+  const [pulse, setPulse] = useState(false);
+
+  const handleJoin = async () => {
+    await join();
+    setPulse(true);
+    setTimeout(() => setPulse(false), 600);
+  };
+
+  const handleLeaveConfirm = async () => {
+    await leave();
+    setLeaveConfirm(false);
+  };
+
   return (
     <div className="fade-in">
       {kotha && (
@@ -842,12 +875,29 @@ function FeedScreen({ tx, lang, selectedKotha, selectedKothaCountry, joinedKotha
                 {kotha.icon} {tx.k[kotha.id]}
                 {selectedKothaCountry && <span style={{fontSize:14,color:"var(--text2)",fontFamily:"var(--font-body)",fontWeight:400}}> · {selectedKothaCountry.flag} {lang==="bn"?selectedKothaCountry.bn:selectedKothaCountry.en}</span>}
               </div>
-              <div className="kotha-hdr-meta">{kotha.members} {tx.members} · {tx.active}</div>
+              <div className="kotha-hdr-meta">
+                {memberCount !== null ? tx.memberCount(memberCount.toLocaleString()) : `${kotha.members} ${tx.members}`}
+                {" · "}{tx.active}
+              </div>
             </div>
-            <button className={`join-btn${isJoined?" joined":""}`} onClick={() => toggleJoin(kotha.id)}>
-              {isJoined ? tx.joined : tx.join}
+            <button
+              className={`join-btn${isMember?" joined":""}${toggling?" toggling":""}${pulse?" pulse":""}`}
+              onClick={() => {
+                if (toggling) return;
+                if (isMember) setLeaveConfirm(c => !c);
+                else handleJoin();
+              }}
+            >
+              {isMember ? tx.joinedKotha : tx.joinKotha}
             </button>
           </div>
+          {leaveConfirm && (
+            <div className="leave-confirm">
+              <span className="leave-confirm-text">{tx.leaveConfirm(tx.k[kotha.id])}</span>
+              <button className="leave-yes-btn" onClick={handleLeaveConfirm}>{tx.leaveYes}</button>
+              <button className="leave-cancel-btn" onClick={() => setLeaveConfirm(false)}>{tx.leaveCancel}</button>
+            </div>
+          )}
         </div>
       )}
       <div className="filters">
@@ -881,17 +931,23 @@ function FeedScreen({ tx, lang, selectedKotha, selectedKothaCountry, joinedKotha
           </div>
         </div>
       )}
-      {filteredPosts.map(p => <PostCard key={p.id} post={p} lang={lang} tx={tx} onSelect={onSelectPost} />)}
+      {feedPosts.map(p => <PostCard key={p.id} post={p} lang={lang} tx={tx} onSelect={onSelectPost} />)}
       <button className="fab" onClick={() => onCreatePost(selectedKotha)}>+</button>
     </div>
   );
 }
 
-function KothaCountriesScreen({ tx, lang, onSelectCountry }) {
+function KothaCountriesScreen({ tx, lang, memberKothaIds, onSelectCountry }) {
+  const isImmigrationMember = memberKothaIds.has("immigration");
   return (
     <div className="fade-in">
       <div className="section-hdr">
         <span className="section-title">{tx.chooseCountry}</span>
+        {isImmigrationMember && (
+          <span style={{fontSize:11,color:"var(--gold)",fontFamily:"var(--font-bn)"}}>
+            <span className="kotha-joined-dot" />{tx.joinedKotha}
+          </span>
+        )}
       </div>
       <div className="country-list">
         {IMMIGRATION_COUNTRIES.map(c => (
@@ -906,7 +962,7 @@ function KothaCountriesScreen({ tx, lang, onSelectCountry }) {
   );
 }
 
-function CommunitiesScreen({ tx, lang, joinedKothas, onSelectKotha }) {
+function CommunitiesScreen({ tx, lang, memberKothaIds, onSelectKotha }) {
   return (
     <div className="fade-in">
       <div className="section-hdr">
@@ -915,10 +971,10 @@ function CommunitiesScreen({ tx, lang, joinedKothas, onSelectKotha }) {
       </div>
       <div className="kotha-grid">
         {KOTHAS.map(k => {
-          const isJ = joinedKothas.includes(k.id);
+          const isJ = memberKothaIds.has(k.id);
           return (
             <div key={k.id} className="kotha-card" onClick={() => onSelectKotha(k.id)}>
-              {isJ && <div className="kotha-joined-tag">{tx.joined}</div>}
+              {isJ && <div className="kotha-joined-tag" title={tx.joinedKotha} />}
               <span className="kotha-icon">{k.icon}</span>
               <div className="kotha-name">{tx.k[k.id]}</div>
               <div className="kotha-members">{k.members} {tx.members}</div>
@@ -1346,6 +1402,66 @@ function AccountSettingsScreen({ tx, lang, user, userId, navigate }) {
       <Row label={tx.feedRecommendations} arrow={false} toggle toggleVal={feedRec} toggleSet={setFeedRec} />
       <Row label={tx.externalSearch} arrow={false} toggle toggleVal={extSearch} toggleSet={setExtSearch} />
       <Row label={tx.personalizedAds} arrow={false} toggle toggleVal={persAds} toggleSet={setPersAds} />
+
+      <div className="settings-section-hdr">NOTIFICATIONS</div>
+      <Row label={tx.kothaNotifications} onTap={() => navigate("kotha-notifications", "forward")} />
+    </div>
+  );
+}
+
+function KothaNotificationsScreen({ tx, lang, memberships, updateNotifyPrefs }) {
+  // Local optimistic state: { [kothaId]: { notify_new_posts, notify_replies } }
+  const [prefs, setPrefs] = useState({});
+
+  useEffect(() => {
+    const init = {};
+    memberships.forEach(m => {
+      init[m.kotha_id] = { notify_new_posts: m.notify_new_posts, notify_replies: m.notify_replies };
+    });
+    setPrefs(init);
+  }, [memberships]);
+
+  const toggle = async (kothaId, field) => {
+    const current = prefs[kothaId]?.[field] ?? true;
+    setPrefs(p => ({ ...p, [kothaId]: { ...p[kothaId], [field]: !current } }));
+    await updateNotifyPrefs(kothaId, { [field]: !current });
+  };
+
+  if (memberships.length === 0) {
+    return (
+      <div className="fade-in" style={{padding:"40px 16px",textAlign:"center",color:"var(--muted)",fontFamily:"var(--font-bn)",fontSize:13}}>
+        {tx.noJoinedKothas}
+      </div>
+    );
+  }
+
+  return (
+    <div className="fade-in" style={{paddingBottom:80}}>
+      {memberships.map(m => {
+        const kotha = KOTHAS.find(k => k.id === m.kotha_id);
+        if (!kotha) return null;
+        const p = prefs[m.kotha_id] ?? {};
+        return (
+          <div key={m.kotha_id} style={{borderBottom:"1px solid var(--border)"}}>
+            <div style={{padding:"12px 16px 4px",display:"flex",alignItems:"center",gap:10}}>
+              <span style={{fontSize:20}}>{kotha.icon}</span>
+              <span style={{fontSize:13,fontWeight:600,color:"var(--text)",fontFamily:"var(--font-bn)"}}>{tx.k[kotha.id]}</span>
+            </div>
+            <div className="settings-row" style={{padding:"8px 16px 8px 46px"}}>
+              <div style={{flex:1}}>
+                <div className="settings-row-label">{tx.notifyNewPosts}</div>
+              </div>
+              <SettingsToggle on={p.notify_new_posts ?? true} onChange={() => toggle(m.kotha_id, "notify_new_posts")} />
+            </div>
+            <div className="settings-row" style={{padding:"8px 16px 12px 46px"}}>
+              <div style={{flex:1}}>
+                <div className="settings-row-label">{tx.notifyReplies}</div>
+              </div>
+              <SettingsToggle on={p.notify_replies ?? true} onChange={() => toggle(m.kotha_id, "notify_replies")} />
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -1676,10 +1792,17 @@ export default function App() {
   const [aiThinking, setAiThinking] = useState(false);
   const [feedbackGiven, setFeedbackGiven] = useState(false);
   const [savedPosts, setSavedPosts] = useState([]);
-  const [joinedKothas, setJoinedKothas] = useState(["immigration","lifeabroad","canada"]);
   const [createPostFromKotha, setCreatePostFromKotha] = useState(null);
   const topRef = useRef(null);
   const tx = T[lang];
+  const { memberships, memberKothaIds } = useMemberships(user?.id);
+
+  // Helper for KothaNotificationsScreen: update a single membership's notify prefs
+  const updateMembershipNotifyPrefs = useCallback(async (kothaId, patch) => {
+    if (!user?.id) return;
+    await supabase.from("memberships").update(patch)
+      .eq("user_id", user.id).eq("kotha_id", kothaId);
+  }, [user?.id]);
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -1729,7 +1852,6 @@ export default function App() {
   };
 
   const toggleSave = (id) => setSavedPosts(p => p.includes(id) ? p.filter(x=>x!==id) : [...p,id]);
-  const toggleJoin = (kid) => setJoinedKothas(p => p.includes(kid) ? p.filter(x=>x!==kid) : [...p,kid]);
 
   const handleSelectPost = useCallback((post) => {
     setSelectedPost(post);
@@ -1783,6 +1905,8 @@ export default function App() {
       navigate("profile", "back");
     } else if (screen === "app-settings") {
       navigate("account-settings", "back");
+    } else if (screen === "kotha-notifications") {
+      navigate("account-settings", "back");
     } else if (screen === "create-post") {
       navigate(createPostFromKotha ? "feed" : "home", "back");
     } else {
@@ -1820,7 +1944,7 @@ export default function App() {
     { id:"profile",     label:tx.profile },
   ];
 
-  const isDeepScreen = ["post","feed","kotha-countries","vault","trusted-hands","remittance-radar","search","account-settings","app-settings","create-post"].includes(screen);
+  const isDeepScreen = ["post","feed","kotha-countries","vault","trusted-hands","remittance-radar","search","account-settings","app-settings","create-post","kotha-notifications"].includes(screen);
 
   const getTopBarKotha = () => {
     if (screen === "post" && selectedPost) return `k/${tx.k[selectedPost.kotha]}`;
@@ -1831,6 +1955,7 @@ export default function App() {
     }
     if (screen === "account-settings") return tx.accountSettings;
     if (screen === "app-settings") return tx.appSettings;
+    if (screen === "kotha-notifications") return tx.kothaNotifications;
     if (screen === "search") return tx.search;
     if (screen === "create-post") return tx.newPost;
     return null;
@@ -1860,17 +1985,18 @@ export default function App() {
 
         <div key={screenKey} className={`screen slide-${navDir}`} ref={topRef}>
           {screen === "onboarding"        && <OnboardingScreen tx={tx} lang={lang} setLang={setLang} onboardStep={onboardStep} setOnboardStep={setOnboardStep} navigate={navigate} selectedCountry={selectedCountry} setSelectedCountry={setSelectedCountry} />}
-          {screen === "home"              && <HomeScreen tx={tx} lang={lang} navigate={navigate} joinedKothas={joinedKothas} onSelectPost={handleSelectPost} onSelectKotha={handleSelectKotha} />}
+          {screen === "home"              && <HomeScreen tx={tx} lang={lang} navigate={navigate} memberKothaIds={memberKothaIds} onSelectPost={handleSelectPost} onSelectKotha={handleSelectKotha} />}
           {screen === "search"            && <SearchScreen lang={lang} tx={tx} onSelectPost={handleSelectPost} />}
-          {screen === "feed"              && <FeedScreen tx={tx} lang={lang} selectedKotha={selectedKotha} selectedKothaCountry={selectedKothaCountry} joinedKothas={joinedKothas} activeFilter={activeFilter} setActiveFilter={setActiveFilter} question={question} setQuestion={setQuestion} handleAsk={handleAsk} aiThinking={aiThinking} aiResponse={aiResponse} feedbackGiven={feedbackGiven} setFeedbackGiven={setFeedbackGiven} toggleJoin={toggleJoin} onSelectPost={handleSelectPost} onCreatePost={handleOpenCreatePost} />}
+          {screen === "feed"              && <FeedScreen tx={tx} lang={lang} userId={user?.id} selectedKotha={selectedKotha} selectedKothaCountry={selectedKothaCountry} activeFilter={activeFilter} setActiveFilter={setActiveFilter} question={question} setQuestion={setQuestion} handleAsk={handleAsk} aiThinking={aiThinking} aiResponse={aiResponse} feedbackGiven={feedbackGiven} setFeedbackGiven={setFeedbackGiven} onSelectPost={handleSelectPost} onCreatePost={handleOpenCreatePost} />}
           {screen === "create-post"       && <CreatePostScreen tx={tx} lang={lang} initialKothaId={createPostFromKotha} navigate={navigate} setSelectedKotha={setSelectedKotha} />}
-          {screen === "kotha-countries"   && <KothaCountriesScreen tx={tx} lang={lang} onSelectCountry={handleSelectCountry} />}
-          {screen === "communities"       && <CommunitiesScreen tx={tx} lang={lang} joinedKothas={joinedKothas} onSelectKotha={handleSelectKotha} />}
+          {screen === "kotha-countries"   && <KothaCountriesScreen tx={tx} lang={lang} memberKothaIds={memberKothaIds} onSelectCountry={handleSelectCountry} />}
+          {screen === "communities"       && <CommunitiesScreen tx={tx} lang={lang} memberKothaIds={memberKothaIds} onSelectKotha={handleSelectKotha} />}
           {screen === "post"              && <PostDetailScreen tx={tx} lang={lang} selectedPost={selectedPost} savedPosts={savedPosts} toggleSave={toggleSave} />}
           {screen === "saved"             && <SavedScreen lang={lang} savedPosts={savedPosts} tx={tx} onSelectPost={handleSelectPost} />}
           {screen === "profile"           && <ProfileScreen tx={tx} lang={lang} onSelectKotha={handleSelectKotha} onLogout={handleLogout} userId={user?.id} userEmail={user?.email || ""} navigate={navigate} />}
           {screen === "account-settings"  && <AccountSettingsScreen tx={tx} lang={lang} user={user?.email || ""} userId={user?.id} navigate={navigate} />}
           {screen === "app-settings"      && <AppSettingsScreen tx={tx} lang={lang} />}
+          {screen === "kotha-notifications" && <KothaNotificationsScreen tx={tx} lang={lang} memberships={memberships} updateNotifyPrefs={updateMembershipNotifyPrefs} />}
           {screen === "services"          && <ServicesScreen tx={tx} lang={lang} navigate={navigate} />}
           {screen === "vault"             && <VaultScreen tx={tx} lang={lang} />}
           {screen === "trusted-hands"     && <TrustedHandsScreen tx={tx} lang={lang} />}
