@@ -535,9 +535,13 @@ async function askAI(question, lang) {
     ? "আপনি কি কথা প্ল্যাটফর্মের AI সহকারী। বাংলাদেশি প্রবাসীদের ইমিগ্রেশন, ভিসা এবং জিসিসি কর্মসংস্থান বিষয়ে সঠিক, সহায়ক তথ্য প্রদান করুন। সংক্ষিপ্ত উত্তর দিন। বলুন এটি শুধু তথ্যমূলক। বাংলায় উত্তর দিন।"
     : "You are the Ki Kotha AI assistant. Provide accurate, helpful information to Bangladeshi diaspora about immigration, visas, and GCC employment. Keep answers concise. Always note this is informational only, not legal advice.";
   try {
+    const { data: { session } } = await supabase.auth.getSession();
+    const headers = { "Content-Type": "application/json" };
+    if (session?.access_token) headers["Authorization"] = `Bearer ${session.access_token}`;
+
     const res = await fetch("/api/chat", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({
         model: "claude-sonnet-4-5",
         max_tokens: 800,
@@ -545,6 +549,15 @@ async function askAI(question, lang) {
         messages: [{ role: "user", content: question }],
       }),
     });
+
+    if (res.status === 429) {
+      const { retryAfter, limit } = await res.json();
+      const mins = Math.ceil(retryAfter / 60);
+      return lang === "bn"
+        ? `AI সীমা শেষ। ${mins} মিনিট পরে আবার চেষ্টা করুন।`
+        : `AI limit reached (${limit}). Try again in ${mins} minute${mins === 1 ? "" : "s"}.`;
+    }
+
     const data = await res.json();
     return data.content?.[0]?.text || "Sorry, could not generate a response right now.";
   } catch {
