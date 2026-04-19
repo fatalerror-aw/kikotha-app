@@ -1,5 +1,26 @@
 import { createClient } from "@supabase/supabase-js";
 
+// ── Prompt injection filter (duplicated from src/lib/sanitize.js — intentional,
+//    avoids shared module build complexity for serverless functions) ─────────────
+const INJECTION_PATTERNS = [
+  /ignore\s+(all\s+|previous\s+|above\s+|prior\s+)?(instructions?|rules?|prompts?)/gi,
+  /system:?\s*(prompt|message|instruction)/gi,
+  /you\s+are\s+(now\s+|actually\s+)?[a-z]+/gi,
+  /\[?(INST|SYSTEM|ASSISTANT)\]?/g,
+  /<\|.*?\|>/g,
+  /pretend\s+(you|to\s+be)/gi,
+  /disregard\s+(the\s+|your\s+)?(above|previous|prior|rules)/gi,
+  /act\s+as\s+(if\s+)?(you\s+are\s+)?[a-z]+/gi,
+  /new\s+(prompt|instructions?|rules?):/gi,
+  /---+\s*(system|user|assistant)\s*---+/gi,
+];
+function sanitizeForAI(str) {
+  if (typeof str !== "string") return "";
+  let s = str;
+  for (const re of INJECTION_PATTERNS) { re.lastIndex = 0; s = s.replace(re, "[removed]"); }
+  return s;
+}
+
 const ANTHROPIC_KEY = process.env.ANTHROPIC_KEY;
 const SUPABASE_URL  = process.env.VITE_SUPABASE_URL;
 const SERVICE_KEY   = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -105,7 +126,14 @@ export default async function handler(req, res) {
         .lt("created_at", new Date(now - 48 * 60 * 60 * 1000).toISOString())
     );
 
-  // ── Anthropic call (unchanged) ────────────────────────────────────────────
+  // ── Anthropic call ────────────────────────────────────────────────────────
+  // Strip prompt injection patterns — stored post is untouched, this only cleans what Claude sees
+  const cleanedBody = { ...req.body };
+  if (Array.isArray(cleanedBody.messages)) {
+    cleanedBody.messages = cleanedBody.messages.map(m =>
+      typeof m.content === "string" ? { ...m, content: sanitizeForAI(m.content) } : m
+    );
+  }
   try {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -114,7 +142,7 @@ export default async function handler(req, res) {
         "x-api-key": ANTHROPIC_KEY,
         "anthropic-version": "2023-06-01",
       },
-      body: JSON.stringify(req.body),
+      body: JSON.stringify(cleanedBody),
     });
 
     const data = await response.json();

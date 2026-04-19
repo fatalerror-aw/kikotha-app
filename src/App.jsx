@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
+import { sanitizePost, sanitizeComment, sanitizeForAI, LIMITS } from "./lib/sanitize.js";
 const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY);
 
 // ── Translations ──────────────────────────────────────────────────────────────
@@ -539,6 +540,8 @@ async function askAI(question, lang) {
     const headers = { "Content-Type": "application/json" };
     if (session?.access_token) headers["Authorization"] = `Bearer ${session.access_token}`;
 
+    // Strip prompt injection patterns — stored post is untouched, this only cleans what Claude sees
+    const safeQuestion = sanitizeForAI(question);
     const res = await fetch("/api/chat", {
       method: "POST",
       headers,
@@ -546,7 +549,7 @@ async function askAI(question, lang) {
         model: "claude-sonnet-4-5",
         max_tokens: 800,
         system: systemPrompt,
-        messages: [{ role: "user", content: question }],
+        messages: [{ role: "user", content: safeQuestion }],
       }),
     });
 
@@ -887,20 +890,26 @@ function CommunitiesScreen({ tx, lang, joinedKothas, onSelectKotha }) {
 
 function PostDetailScreen({ tx, lang, selectedPost, savedPosts, toggleSave }) {
   const [commentText, setCommentText] = useState("");
+  const [commentError, setCommentError] = useState("");
   const { comments: localComments, setComments: setLocalComments } = useComments(selectedPost?.id);
 
   const handleAddComment = async () => {
-    const text = commentText.trim();
-    if (!text) return;
+    const sanitized = sanitizeComment(commentText);
+    if (sanitized.errors.length > 0) {
+      setCommentError(lang === "bn" ? sanitized.errors[0].bn : sanitized.errors[0].en);
+      return;
+    }
+    setCommentError("");
     const { data: { user } } = await supabase.auth.getUser();
     const newComment = {
-      post_id: selectedPost.id,
-      author_id: user.id,
-      author_name: localStorage.getItem("kk_name") || "Anonymous",
-      author_av: "ME",
-      author_flag: "🌐",
+      post_id:      selectedPost.id,
+      author_id:    user.id,
+      author_name:  localStorage.getItem("kk_name") || "Anonymous",
+      author_av:    "ME",
+      author_flag:  "🌐",
       author_badge: false,
-      body: text,
+      body:         sanitized.body,
+      flagged:      sanitized.flagged,
     };
     const { data, error } = await supabase.from("comments").insert(newComment).select().single();
     if (!error && data) { setLocalComments(prev => [...prev, data]); setCommentText(""); }
@@ -973,7 +982,9 @@ function PostDetailScreen({ tx, lang, selectedPost, savedPosts, toggleSave }) {
         </div>
       ))}
       <div className="ask-box" style={{marginTop:8}}>
-        <textarea className="ask-textarea" rows={2} placeholder={lang==="bn"?"মন্তব্য লিখুন...":"Add a comment..."} value={commentText} onChange={e => setCommentText(e.target.value)} />
+        <textarea className="ask-textarea" rows={2} placeholder={lang==="bn"?"মন্তব্য লিখুন...":"Add a comment..."} value={commentText} maxLength={LIMITS.comment} onChange={e => { setCommentText(e.target.value); setCommentError(""); }} />
+        <div className={`char-count${commentText.length > LIMITS.comment - 100 ? " warn" : ""}`} style={{textAlign:"right",marginTop:3,marginBottom:6}}>{commentText.length}/{LIMITS.comment}</div>
+        {commentError && <div className="post-error" style={{marginBottom:8}}>{commentError}</div>}
         <button className="ask-submit" onClick={handleAddComment}>{lang==="bn"?"মন্তব্য করুন":"Comment"}</button>
       </div>
     </div>
@@ -1468,33 +1479,39 @@ function CreatePostScreen({ tx, lang, initialKothaId, navigate, setSelectedKotha
   const [body, setBody]         = useState("");
   const [postLang, setPostLang] = useState(lang);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError]       = useState("");
+  const [errors, setErrors]     = useState([]);
 
-  const titleOk = title.trim().length > 0 && title.length <= 200;
-  const bodyOk  = body.trim().length >= 10 && body.length <= 2000;
+  const titleOk = title.trim().length > 0 && title.length <= LIMITS.title;
+  const bodyOk  = body.trim().length >= 10 && body.length <= LIMITS.body;
   const kothaOk = !!kothaId;
   const valid   = titleOk && bodyOk && kothaOk;
 
   const handleSubmit = async () => {
-    if (!valid || submitting) return;
+    if (submitting) return;
+    const sanitized = sanitizePost({ title, body });
+    if (sanitized.errors.length > 0) { setErrors(sanitized.errors); return; }
+    setErrors([]);
     setSubmitting(true);
-    setError("");
     const { data: { user: authUser } } = await supabase.auth.getUser();
     const { error: err } = await supabase.from("posts").insert({
-      title:    title.trim(),
-      body:     body.trim(),
+      title:    sanitized.title,
+      body:     sanitized.body,
+      flagged:  sanitized.flagged,
       kotha_id: kothaId,
       user_id:  authUser.id,
       lang:     postLang,
     });
     if (err) {
       setSubmitting(false);
-      setError(err.message || tx.postErrorMsg);
+      setErrors([{ field: "submit", en: err.message || tx.postErrorMsg, bn: tx.postErrorMsg }]);
       return;
     }
     setSelectedKotha(kothaId);
     navigate("feed", "back");
   };
+
+  const errFor = field => errors.find(e => e.field === field);
+  const e = lang === "bn" ? "bn" : "en";
 
   return (
     <div className="fade-in create-post-form">
@@ -1503,10 +1520,11 @@ function CreatePostScreen({ tx, lang, initialKothaId, navigate, setSelectedKotha
         className="create-post-input"
         placeholder={tx.postTitlePlaceholder}
         value={title}
-        maxLength={200}
+        maxLength={LIMITS.title}
         onChange={e => setTitle(e.target.value)}
       />
-      <div className={`char-count${title.length > 180 ? " warn" : ""}`}>{title.length}/200</div>
+      <div className={`char-count${title.length > LIMITS.title - 20 ? " warn" : ""}`}>{title.length}/{LIMITS.title}</div>
+      {errFor("title") && <div className="post-error" style={{marginTop:0,marginBottom:12}}>{errFor("title")[e]}</div>}
 
       <label className="create-post-label">{tx.postBodyLabel} *</label>
       <textarea
@@ -1514,10 +1532,11 @@ function CreatePostScreen({ tx, lang, initialKothaId, navigate, setSelectedKotha
         rows={8}
         placeholder={tx.postBodyPlaceholder}
         value={body}
-        maxLength={2000}
-        onChange={e => setBody(e.target.value)}
+        maxLength={LIMITS.body}
+        onChange={ev => setBody(ev.target.value)}
       />
-      <div className={`char-count${body.length > 1800 ? " warn" : ""}`}>{body.length}/2000</div>
+      <div className={`char-count${body.length > LIMITS.body - 200 ? " warn" : ""}`}>{body.length}/{LIMITS.body}</div>
+      {errFor("body") && <div className="post-error" style={{marginTop:0,marginBottom:12}}>{errFor("body")[e]}</div>}
 
       <label className="create-post-label">{tx.postLangLabel}</label>
       <div className="lang-toggle-row">
@@ -1525,7 +1544,7 @@ function CreatePostScreen({ tx, lang, initialKothaId, navigate, setSelectedKotha
         <button className={`lang-toggle-btn${postLang==="bn"?" active":""}`} onClick={() => setPostLang("bn")}>{tx.postLangBn}</button>
       </div>
 
-      {error && <div className="post-error">{error}</div>}
+      {errFor("submit") && <div className="post-error">{errFor("submit")[e]}</div>}
 
       <button className="post-submit-btn" onClick={handleSubmit} disabled={!valid || submitting}>
         {submitting ? tx.posting : tx.postSubmit}
