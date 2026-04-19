@@ -41,6 +41,12 @@ const T = {
     achievements: (n) => `${n} achievements`, addSocialLink: "Add Social Link",
     tabPosts: "Posts", tabComments: "Comments", tabAbout: "About",
     noPosts: "No posts yet", noComments: "No comments yet",
+    changeUsername: "Change Username", usernameLabel: "Username",
+    usernamePlaceholder: "letters, numbers, underscores",
+    usernameAvailable: "✓ Available", usernameTaken: "✗ Already taken",
+    usernameInvalid: "3–30 chars: letters, numbers, underscores only",
+    usernameChecking: "Checking...", saveUsername: "Save", savingUsername: "Saving...",
+    memberSinceLabel: "Member since",
     myAccount: "My Account", history: "History", drafts: "Drafts",
     onlineStatus: "Online Status", customFeed: "Add to custom feed",
     profileCuration: "Profile curation", settings: "Settings",
@@ -114,6 +120,12 @@ const T = {
     sendMoney: "টাকা পাঠান",
     karma: "কর্ম", activeIn: "সক্রিয়", kothaCount: (n) => `${n}টি কোথায় যোগ দিয়েছেন`,
     achievements: (n) => `${n}টি অর্জন`, addSocialLink: "সোশ্যাল লিঙ্ক যোগ করুন",
+    changeUsername: "ইউজারনেম পরিবর্তন", usernameLabel: "ইউজারনেম",
+    usernamePlaceholder: "অক্ষর, সংখ্যা, আন্ডারস্কোর",
+    usernameAvailable: "✓ পাওয়া যাচ্ছে", usernameTaken: "✗ ইতিমধ্যে ব্যবহৃত",
+    usernameInvalid: "৩–৩০ অক্ষর: অক্ষর, সংখ্যা, আন্ডারস্কোর",
+    usernameChecking: "যাচাই হচ্ছে...", saveUsername: "সেভ", savingUsername: "সেভ হচ্ছে...",
+    memberSinceLabel: "সদস্য থেকে",
     tabPosts: "পোস্ট", tabComments: "মন্তব্য", tabAbout: "সম্পর্কে",
     noPosts: "কোনো পোস্ট নেই", noComments: "কোনো মন্তব্য নেই",
     myAccount: "আমার অ্যাকাউন্ট", history: "ইতিহাস", drafts: "ড্রাফট",
@@ -577,7 +589,7 @@ function usePosts(kothaId = null) {
   const refetch = () => setTick(t => t + 1);
   useEffect(() => {
     setLoading(true);
-    let query = supabase.from("posts").select("*").order("created_at", { ascending: false });
+    let query = supabase.from("posts").select("*, author:profiles(username, display_name)").order("created_at", { ascending: false });
     if (kothaId) query = query.eq("kotha_id", kothaId);
     query.then(({ data, error }) => {
       if (!error && data) setPosts(data);
@@ -594,6 +606,35 @@ function useComments(postId) {
     supabase.from("comments").select("*").eq("post_id", postId).order("created_at", { ascending: true }).then(({ data }) => { if (data) setComments(data); });
   }, [postId]);
   return { comments, setComments };
+}
+
+function useCurrentProfile(userId) {
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!userId) { setProfile(null); setLoading(false); return; }
+    supabase.from("profiles").select("*").eq("id", userId).maybeSingle()
+      .then(({ data }) => { setProfile(data); setLoading(false); });
+  }, [userId]);
+
+  const updateProfile = useCallback(async (patch) => {
+    if (!userId) return { error: "not_signed_in" };
+    if (patch.username !== undefined && !/^[a-zA-Z0-9_]{3,30}$/.test(patch.username)) {
+      return { error: "invalid" };
+    }
+    if (patch.username !== undefined) {
+      const { data: existing } = await supabase.from("profiles")
+        .select("id").eq("username", patch.username).neq("id", userId).maybeSingle();
+      if (existing) return { error: "taken" };
+    }
+    const { data, error } = await supabase.from("profiles")
+      .upsert({ id: userId, ...patch }).select().single();
+    if (!error && data) setProfile(data);
+    return { data, error };
+  }, [userId]);
+
+  return { profile, loading, updateProfile };
 }
 
 // ── Components (all outside App to prevent remounts) ─────────────────────────
@@ -726,18 +767,19 @@ function AuthScreen() {
 }
 
 function PostCard({ post, lang, tx, onSelect }) {
-  const title = post.title || (lang==="bn" ? post.titleBn : post.titleEn);
-  const name  = post.author_name || (lang==="bn" ? post.nameBn : post.name);
-  const av    = post.author_av || post.av || "??";
-  const flag  = post.author_flag || post.flag || "🌐";
-  const badge = post.author_badge || post.badge || false;
-  const type  = lang==="bn" ? tx[`type${typeClass(post.type)}`] || post.type : post.type;
-  const tc    = typeClass(post.type);
+  const title    = post.title || (lang==="bn" ? post.titleBn : post.titleEn);
+  const dispName = post.author?.display_name || post.author_name || (lang==="bn" ? post.nameBn : post.name);
+  const username = post.author?.username;
+  const av       = username ? username.slice(0,2).toUpperCase() : (post.author_av || post.av || "??");
+  const flag     = post.author_flag || post.flag || "🌐";
+  const badge    = post.author_badge || post.badge || false;
+  const type     = lang==="bn" ? tx[`type${typeClass(post.type)}`] || post.type : post.type;
+  const tc       = typeClass(post.type);
   return (
     <div className="post-card fade-in" onClick={() => onSelect(post)}>
       <div className="post-meta">
         <div className="avatar">{av}</div>
-        <span className="post-author">{flag} {name}{badge && <span className="verified"> ✓</span>}</span>
+        <span className="post-author">{flag} {dispName}{username && <span style={{color:"var(--muted)",fontSize:10,fontWeight:400}}> @{username}</span>}{badge && <span className="verified"> ✓</span>}</span>
         <span className="post-kotha">k/{tx.k[post.kotha_id || post.kotha]}</span>
         <span className="post-time">{post.time || new Date(post.created_at).toLocaleDateString()}</span>
       </div>
@@ -1045,20 +1087,24 @@ function SettingsToggle({ on, locked, onChange }) {
   );
 }
 
-function ProfileScreen({ tx, lang, onSelectKotha, onLogout, user, navigate }) {
-  const [displayName, setDisplayName] = useState(() => localStorage.getItem("kk_name") || user || tx.profileName);
+function ProfileScreen({ tx, lang, onSelectKotha, onLogout, userId, userEmail, navigate }) {
+  const { profile, updateProfile } = useCurrentProfile(userId);
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState("");
+  const [savingName, setSavingName] = useState(false);
   const [activeTab, setActiveTab] = useState("posts");
   const [sheetOpen, setSheetOpen] = useState(false);
   const [onlineStatus, setOnlineStatus] = useState(true);
-  const email = localStorage.getItem("kk_email") || user || "";
-  const username = email.split("@")[0] || "user";
 
-  const saveEdit = () => {
-    const n = editName.trim() || displayName;
-    localStorage.setItem("kk_name", n);
-    setDisplayName(n);
+  const displayName = profile?.display_name || userEmail?.split("@")[0] || tx.profileName;
+  const username    = profile?.username || userEmail?.split("@")[0] || "user";
+
+  const saveEdit = async () => {
+    const n = editName.trim();
+    if (!n) { setEditing(false); return; }
+    setSavingName(true);
+    await updateProfile({ display_name: n });
+    setSavingName(false);
     setEditing(false);
   };
 
@@ -1092,14 +1138,14 @@ function ProfileScreen({ tx, lang, onSelectKotha, onLogout, user, navigate }) {
                 onChange={e => setEditName(e.target.value)}
                 autoFocus
               />
-              <button className="edit-save" style={{padding:"6px 14px",fontSize:12}} onClick={saveEdit}>{lang==="bn"?"সেভ":"Save"}</button>
-              <button className="edit-cancel" style={{padding:"6px 10px",fontSize:12}} onClick={() => setEditing(false)}>✕</button>
+              <button className="edit-save" style={{padding:"6px 14px",fontSize:12}} onClick={saveEdit} disabled={savingName}>{savingName ? tx.savingUsername : tx.saveUsername}</button>
+              <button className="edit-cancel" style={{padding:"6px 10px",fontSize:12}} onClick={() => setEditing(false)} disabled={savingName}>✕</button>
             </div>
           ) : (
             <div className="prof-name">{displayName}</div>
           )}
           <div className="prof-username">@{username}</div>
-          <div className="prof-kothas">{tx.kothaCount(3)}</div>
+          <div className="prof-kothas">{tx.kothaCount(profile?.active_in?.length ?? 0)}</div>
         </div>
         {!editing && (
           <button className="prof-edit-btn" onClick={() => { setEditName(displayName); setEditing(true); }}>
@@ -1116,10 +1162,10 @@ function ProfileScreen({ tx, lang, onSelectKotha, onLogout, user, navigate }) {
 
       {/* Stats pills */}
       <div className="prof-stats-row">
-        <div className="prof-stat-pill"><div className="prof-stat-val">4.2K</div><div className="prof-stat-label">{tx.karma}</div></div>
-        <div className="prof-stat-pill"><div className="prof-stat-val">47</div><div className="prof-stat-label">{tx.postsLabel}</div></div>
-        <div className="prof-stat-pill"><div className="prof-stat-val">Mar '26</div><div className="prof-stat-label">{tx.memberSince.split("·")[0].replace("Member since","").trim()}</div></div>
-        <div className="prof-stat-pill"><div className="prof-stat-val">3</div><div className="prof-stat-label">{tx.activeIn}</div></div>
+        <div className="prof-stat-pill"><div className="prof-stat-val">{profile?.karma ?? 0}</div><div className="prof-stat-label">{tx.karma}</div></div>
+        <div className="prof-stat-pill"><div className="prof-stat-val">{profile?.posts_count ?? 0}</div><div className="prof-stat-label">{tx.postsLabel}</div></div>
+        <div className="prof-stat-pill"><div className="prof-stat-val">{profile?.created_at ? (() => { const d = new Date(profile.created_at); return ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getMonth()] + " '" + String(d.getFullYear()).slice(2); })() : "—"}</div><div className="prof-stat-label">{tx.memberSinceLabel}</div></div>
+        <div className="prof-stat-pill"><div className="prof-stat-val">{profile?.active_in?.length ?? 0}</div><div className="prof-stat-label">{tx.activeIn}</div></div>
       </div>
 
       {/* Tabs */}
@@ -1145,7 +1191,7 @@ function ProfileScreen({ tx, lang, onSelectKotha, onLogout, user, navigate }) {
       {activeTab === "about" && (
         <div style={{padding:"16px"}}>
           <div style={{fontSize:12,color:"var(--muted)",fontFamily:"var(--font-bn)",lineHeight:1.7}}>
-            {lang==="bn"?"ব্র্যাঞ্চ ম্যানেজার · টরন্টো 🇨🇦":"Branch Manager · Toronto 🇨🇦"}
+            {profile?.bio || (lang==="bn" ? "কোনো বিবরণ যোগ করা হয়নি" : "No bio added yet")}
           </div>
           <div style={{marginTop:12,display:"flex",gap:6,flexWrap:"wrap"}}>
             <span className="badge-chip">✓ {tx.verified}</span>
@@ -1185,9 +1231,42 @@ function ProfileScreen({ tx, lang, onSelectKotha, onLogout, user, navigate }) {
   );
 }
 
-function AccountSettingsScreen({ tx, lang, user, navigate }) {
-  const email = localStorage.getItem("kk_email") || user || "";
+function AccountSettingsScreen({ tx, lang, user, userId, navigate }) {
+  const email = user || "";
+  const { profile, updateProfile } = useCurrentProfile(userId);
   const [allowFollow, setAllowFollow] = useState(true);
+  const [usernameInput, setUsernameInput] = useState("");
+  const [usernameStatus, setUsernameStatus] = useState(null); // null | "checking" | "available" | "taken" | "invalid"
+  const [savingUsername, setSavingUsername] = useState(false);
+  const [usernameOpen, setUsernameOpen] = useState(false);
+
+  // Sync input when profile loads
+  useEffect(() => {
+    if (profile?.username && !usernameInput) setUsernameInput(profile.username);
+  }, [profile?.username]);
+
+  // Debounced availability check
+  useEffect(() => {
+    if (!usernameOpen) return;
+    const val = usernameInput.trim();
+    if (!val || val === profile?.username) { setUsernameStatus(null); return; }
+    if (!/^[a-zA-Z0-9_]{3,30}$/.test(val)) { setUsernameStatus("invalid"); return; }
+    setUsernameStatus("checking");
+    const t = setTimeout(async () => {
+      const { data } = await supabase.from("profiles").select("id")
+        .eq("username", val).neq("id", userId).maybeSingle();
+      setUsernameStatus(data ? "taken" : "available");
+    }, 500);
+    return () => clearTimeout(t);
+  }, [usernameInput, usernameOpen, profile?.username, userId]);
+
+  const handleSaveUsername = async () => {
+    if (usernameStatus !== "available") return;
+    setSavingUsername(true);
+    const { error } = await updateProfile({ username: usernameInput.trim() });
+    setSavingUsername(false);
+    if (!error) { setUsernameOpen(false); setUsernameStatus(null); }
+  };
   const [showFollowers, setShowFollowers] = useState(false);
   const [feedRec, setFeedRec] = useState(true);
   const [extSearch, setExtSearch] = useState(true);
@@ -1221,6 +1300,31 @@ function AccountSettingsScreen({ tx, lang, user, navigate }) {
 
       <div className="settings-section-hdr">{tx.acctBasics}</div>
       <Row label={tx.emailAddress} val={email} />
+      <Row label={tx.changeUsername} val={profile?.username ? `@${profile.username}` : "—"} onTap={() => setUsernameOpen(o => !o)} />
+      {usernameOpen && (
+        <div style={{padding:"0 16px 16px",background:"var(--card)",borderBottom:"1px solid var(--border)"}}>
+          <input
+            className="create-post-input"
+            style={{margin:"8px 0 4px",fontSize:13}}
+            placeholder={tx.usernamePlaceholder}
+            value={usernameInput}
+            maxLength={30}
+            onChange={e => setUsernameInput(e.target.value)}
+          />
+          {usernameStatus === "checking"  && <div style={{fontSize:11,color:"var(--muted)",fontFamily:"var(--font-bn)"}}>{tx.usernameChecking}</div>}
+          {usernameStatus === "available" && <div style={{fontSize:11,color:"#4caf50",fontFamily:"var(--font-bn)"}}>{tx.usernameAvailable}</div>}
+          {usernameStatus === "taken"     && <div style={{fontSize:11,color:"#e57373",fontFamily:"var(--font-bn)"}}>{tx.usernameTaken}</div>}
+          {usernameStatus === "invalid"   && <div style={{fontSize:11,color:"var(--muted)",fontFamily:"var(--font-bn)"}}>{tx.usernameInvalid}</div>}
+          <button
+            className="post-submit-btn"
+            style={{marginTop:10,padding:"10px",fontSize:13}}
+            disabled={usernameStatus !== "available" || savingUsername}
+            onClick={handleSaveUsername}
+          >
+            {savingUsername ? tx.savingUsername : tx.saveUsername}
+          </button>
+        </div>
+      )}
       <Row label={tx.updatePassword} />
       <Row label={tx.phoneNumber} />
       <Row label={tx.locationRegion} sub={tx.locationNone} />
@@ -1578,18 +1682,26 @@ export default function App() {
   const tx = T[lang];
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       const u = session?.user ?? null;
       setUser(u);
-      if (u?.email) localStorage.setItem("kk_email", u.email);
-      if (u?.user_metadata?.display_name) localStorage.setItem("kk_name", u.user_metadata.display_name);
+      if (u) {
+        // One-time migration: push localStorage display_name into profile if profile has none
+        const storedName = localStorage.getItem("kk_name");
+        if (storedName) {
+          const { data: prof } = await supabase.from("profiles")
+            .select("display_name").eq("id", u.id).maybeSingle();
+          if (prof && !prof.display_name) {
+            await supabase.from("profiles").update({ display_name: storedName }).eq("id", u.id);
+          }
+          localStorage.removeItem("kk_name");
+        }
+        localStorage.removeItem("kk_email");
+      }
       setAuthLoading(false);
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      const u = session?.user ?? null;
-      setUser(u);
-      if (u?.email) localStorage.setItem("kk_email", u.email);
-      if (u?.user_metadata?.display_name) localStorage.setItem("kk_name", u.user_metadata.display_name);
+      setUser(session?.user ?? null);
     });
     return () => subscription.unsubscribe();
   }, []);
@@ -1603,8 +1715,6 @@ export default function App() {
 
   const handleLogout = useCallback(async () => {
     await supabase.auth.signOut();
-    localStorage.removeItem("kk_email");
-    localStorage.removeItem("kk_name");
     // setUser(null) fires automatically via onAuthStateChange
   }, []);
 
@@ -1758,8 +1868,8 @@ export default function App() {
           {screen === "communities"       && <CommunitiesScreen tx={tx} lang={lang} joinedKothas={joinedKothas} onSelectKotha={handleSelectKotha} />}
           {screen === "post"              && <PostDetailScreen tx={tx} lang={lang} selectedPost={selectedPost} savedPosts={savedPosts} toggleSave={toggleSave} />}
           {screen === "saved"             && <SavedScreen lang={lang} savedPosts={savedPosts} tx={tx} onSelectPost={handleSelectPost} />}
-          {screen === "profile"           && <ProfileScreen tx={tx} lang={lang} onSelectKotha={handleSelectKotha} onLogout={handleLogout} user={user?.email || ""} navigate={navigate} />}
-          {screen === "account-settings"  && <AccountSettingsScreen tx={tx} lang={lang} user={user?.email || ""} navigate={navigate} />}
+          {screen === "profile"           && <ProfileScreen tx={tx} lang={lang} onSelectKotha={handleSelectKotha} onLogout={handleLogout} userId={user?.id} userEmail={user?.email || ""} navigate={navigate} />}
+          {screen === "account-settings"  && <AccountSettingsScreen tx={tx} lang={lang} user={user?.email || ""} userId={user?.id} navigate={navigate} />}
           {screen === "app-settings"      && <AppSettingsScreen tx={tx} lang={lang} />}
           {screen === "services"          && <ServicesScreen tx={tx} lang={lang} navigate={navigate} />}
           {screen === "vault"             && <VaultScreen tx={tx} lang={lang} />}
