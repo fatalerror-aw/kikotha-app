@@ -3,6 +3,30 @@ import { sanitizePost, sanitizeComment, sanitizeForAI, LIMITS } from "./lib/sani
 import { supabase } from "./lib/supabase.js";
 import { useMemberships, useKothaMembership } from "./hooks/useMembership.js";
 
+// ── Admin API helper ──────────────────────────────────────────────────────────
+// Post-login calls only need the HMAC token + Supabase JWT.
+// VITE_ADMIN_LOGIN_KEY is the low-privilege key only used to REACH the login
+// endpoint — it cannot authorize any action on its own.
+const adminApi = async (action, payload = {}) => {
+  const { data: { session } } = await supabase.auth.getSession();
+  const adminToken = sessionStorage.getItem('kk_admin_token');
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${session?.access_token || ''}`,
+  };
+  if (adminToken) headers['X-Admin-Token'] = adminToken;
+  const res = await fetch('/api/admin', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ action, payload }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || `HTTP ${res.status}`);
+  }
+  return res.json();
+};
+
 // ── Translations ──────────────────────────────────────────────────────────────
 const T = {
   en: {
@@ -1773,10 +1797,377 @@ function CreatePostScreen({ tx, lang, initialKothaId, navigate, setSelectedKotha
   );
 }
 
+// ── AdminLoginScreen ──────────────────────────────────────────────────────────
+function AdminLoginScreen({ onSuccess }) {
+  const [totp, setTotp] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [attempts, setAttempts] = useState(0);
+
+  const handleLogin = async () => {
+    if (!/^\d{6}$/.test(totp)) {
+      setError('Enter the 6-digit code from your authenticator app');
+      return;
+    }
+    setLoading(true);
+    setError('');
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch('/api/admin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token || ''}`,
+          'X-Admin-Secret': import.meta.env.VITE_ADMIN_LOGIN_KEY || '',
+        },
+        body: JSON.stringify({ action: 'login', payload: { totpCode: totp } }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setAttempts(a => a + 1);
+        setError(data.error || 'Login failed');
+        setTotp('');
+        return;
+      }
+      sessionStorage.setItem('kk_admin_token', data.adminToken);
+      onSuccess();
+    } catch {
+      setError('Network error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ minHeight:'100dvh', background:'#0A0A0A', display:'flex', alignItems:'center', justifyContent:'center', padding:'24px' }}>
+      <div style={{ background:'#111', border:'1px solid #222', borderRadius:'16px', padding:'40px 32px', width:'100%', maxWidth:'360px' }}>
+        <div style={{ textAlign:'center', marginBottom:'32px' }}>
+          <div style={{ fontSize:'28px', fontFamily:'Cormorant Garamond, serif', color:'#B8962E', marginBottom:'8px' }}>কি কথা</div>
+          <div style={{ color:'#888', fontSize:'13px', letterSpacing:'0.1em', textTransform:'uppercase' }}>Admin Access</div>
+        </div>
+
+        <div style={{ marginBottom:'16px' }}>
+          <div style={{ color:'#888', fontSize:'12px', marginBottom:'8px' }}>Authenticator code</div>
+          <input
+            type="text"
+            inputMode="numeric"
+            maxLength={6}
+            value={totp}
+            onChange={e => setTotp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+            onKeyDown={e => e.key === 'Enter' && handleLogin()}
+            placeholder="000000"
+            autoFocus
+            style={{
+              width:'100%', background:'#1A1A1A', border:'1px solid #333',
+              borderRadius:'8px', padding:'14px 16px', color:'#fff',
+              fontSize:'24px', letterSpacing:'0.3em', textAlign:'center',
+              outline:'none', boxSizing:'border-box', fontFamily:'monospace',
+            }}
+          />
+        </div>
+
+        {error && (
+          <div style={{ background:'#1A0000', border:'1px solid #5A0000', borderRadius:'8px', padding:'10px 14px', color:'#FF6B6B', fontSize:'13px', marginBottom:'16px' }}>
+            {error}
+            {attempts >= 3 && (
+              <div style={{ marginTop:'4px', opacity:0.7 }}>{5 - attempts} attempts remaining before lockout</div>
+            )}
+          </div>
+        )}
+
+        <button
+          onClick={handleLogin}
+          disabled={loading || totp.length !== 6}
+          style={{
+            width:'100%',
+            background: totp.length === 6 ? '#B8962E' : '#222',
+            color: totp.length === 6 ? '#000' : '#555',
+            border:'none', borderRadius:'8px', padding:'14px',
+            fontSize:'14px', fontWeight:'600',
+            cursor: totp.length === 6 ? 'pointer' : 'default',
+            transition:'all 0.2s',
+          }}
+        >
+          {loading ? 'Verifying...' : 'Enter'}
+        </button>
+
+        <div style={{ textAlign:'center', marginTop:'24px', color:'#444', fontSize:'12px' }}>
+          This session is monitored and logged
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── AdminScreen ───────────────────────────────────────────────────────────────
+function AdminScreen({ onExit }) {
+  const [tab, setTab] = useState('stats');
+  const [stats, setStats] = useState(null);
+  const [flagged, setFlagged] = useState({ flaggedPosts: [], flaggedComments: [] });
+  const [posts, setPosts] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [userSearch, setUserSearch] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [banModal, setBanModal] = useState(null); // { userId, username }
+  const [banReason, setBanReason] = useState('');
+  const [toast, setToast] = useState('');
+
+  const showToast = msg => { setToast(msg); setTimeout(() => setToast(''), 3000); };
+
+  const load = useCallback(async (t) => {
+    setLoading(true);
+    try {
+      if (t === 'stats') {
+        setStats(await adminApi('getStats'));
+      } else if (t === 'modqueue') {
+        setFlagged(await adminApi('getFlagged'));
+      } else if (t === 'posts') {
+        const d = await adminApi('getPosts');
+        setPosts(d.posts);
+      } else if (t === 'users') {
+        const d = await adminApi('getUsers', { search: userSearch });
+        setUsers(d.users);
+      }
+    } catch (e) {
+      showToast('Error: ' + e.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [userSearch]);
+
+  useEffect(() => { load(tab); }, [tab]);
+
+  const handleDeletePost = async (postId) => {
+    if (!window.confirm('Delete this post and all its comments?')) return;
+    try { await adminApi('deletePost', { postId }); showToast('Post deleted'); load(tab); }
+    catch (e) { showToast('Error: ' + e.message); }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    if (!window.confirm('Delete this comment?')) return;
+    try { await adminApi('deleteComment', { commentId }); showToast('Comment deleted'); load('modqueue'); }
+    catch (e) { showToast('Error: ' + e.message); }
+  };
+
+  const handleDismissPost = async (postId) => {
+    try { await adminApi('dismissPostFlag', { postId }); showToast('Flag dismissed'); load('modqueue'); }
+    catch (e) { showToast('Error: ' + e.message); }
+  };
+
+  const handleDismissComment = async (commentId) => {
+    try { await adminApi('dismissCommentFlag', { commentId }); showToast('Flag dismissed'); load('modqueue'); }
+    catch (e) { showToast('Error: ' + e.message); }
+  };
+
+  const handleBan = async () => {
+    try {
+      await adminApi('banUser', { userId: banModal.userId, reason: banReason });
+      showToast(`@${banModal.username} banned`);
+      setBanModal(null); setBanReason('');
+      load('users');
+    } catch (e) { showToast('Error: ' + e.message); }
+  };
+
+  const handleUnban = async (userId, username) => {
+    try { await adminApi('unbanUser', { userId }); showToast(`@${username} unbanned`); load('users'); }
+    catch (e) { showToast('Error: ' + e.message); }
+  };
+
+  // Shared style helpers
+  const sCard = { background:'#111', border:'1px solid #222', borderRadius:'12px', padding:'16px', marginBottom:'10px' };
+  const sBtn = (color) => ({
+    padding:'6px 14px', borderRadius:'6px', border:'none', cursor:'pointer',
+    fontSize:'12px', fontWeight:'600',
+    background: color==='red'?'#3A0000' : color==='green'?'#001A0A' : color==='gold'?'#1A1200' : '#1A1A1A',
+    color: color==='red'?'#FF6B6B' : color==='green'?'#4ADE80' : color==='gold'?'#B8962E' : '#888',
+  });
+  const sLabel = { color:'#555', fontSize:'11px', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:'4px' };
+  const sVal   = { color:'#fff', fontSize:'28px', fontWeight:'600', fontFamily:'Cormorant Garamond, serif' };
+
+  const totalFlagged = (flagged.flaggedPosts?.length ?? 0) + (flagged.flaggedComments?.length ?? 0);
+  const tabs = [
+    { id:'stats',    label:'Stats' },
+    { id:'modqueue', label:`Mod queue${totalFlagged > 0 ? ` (${totalFlagged})` : ''}` },
+    { id:'posts',    label:'Posts' },
+    { id:'users',    label:'Users' },
+  ];
+
+  return (
+    <div style={{ minHeight:'100dvh', background:'#0A0A0A', color:'#fff', fontFamily:'DM Sans, sans-serif' }}>
+      {/* Sticky header */}
+      <div style={{ background:'#111', borderBottom:'1px solid #222', padding:'0 16px', display:'flex', alignItems:'center', justifyContent:'space-between', height:'52px', position:'sticky', top:0, zIndex:50 }}>
+        <span style={{ color:'#B8962E', fontFamily:'Cormorant Garamond, serif', fontSize:'18px' }}>Admin</span>
+        <div style={{ display:'flex', gap:'8px' }}>
+          <button style={sBtn('red')} onClick={() => { sessionStorage.removeItem('kk_admin_token'); onExit(); }}>Sign out</button>
+          <button style={sBtn()} onClick={onExit}>← App</button>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div style={{ display:'flex', gap:'4px', padding:'12px 16px', borderBottom:'1px solid #1A1A1A', overflowX:'auto' }}>
+        {tabs.map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)} style={{
+            padding:'8px 16px', borderRadius:'8px', border:'none', cursor:'pointer',
+            background: tab===t.id ? '#B8962E' : '#1A1A1A',
+            color: tab===t.id ? '#000' : '#888',
+            fontSize:'13px', fontWeight:'600', whiteSpace:'nowrap',
+          }}>{t.label}</button>
+        ))}
+      </div>
+
+      <div style={{ padding:'16px', maxWidth:'900px', margin:'0 auto' }}>
+        {loading && <div style={{ textAlign:'center', color:'#444', padding:'48px' }}>Loading...</div>}
+
+        {/* STATS */}
+        {!loading && tab==='stats' && stats && (
+          <div>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:'10px', marginBottom:'16px' }}>
+              {[
+                { label:'Users',            val:stats.users },
+                { label:'Posts',            val:stats.posts },
+                { label:'Comments',         val:stats.comments },
+                { label:'Flagged posts',    val:stats.flaggedPosts,    warn:stats.flaggedPosts > 0 },
+                { label:'Flagged comments', val:stats.flaggedComments, warn:stats.flaggedComments > 0 },
+                { label:'Banned users',     val:stats.banned,          warn:stats.banned > 0 },
+              ].map(item => (
+                <div key={item.label} style={{ ...sCard, borderColor: item.warn && item.val > 0 ? '#5A3000' : '#222' }}>
+                  <div style={sLabel}>{item.label}</div>
+                  <div style={{ ...sVal, color: item.warn && item.val > 0 ? '#B8962E' : '#fff' }}>{item.val ?? '—'}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ ...sCard, borderColor:'#1A1A00' }}>
+              <div style={{ color:'#555', fontSize:'12px' }}>Ki Kotha Admin Panel · All actions are logged · Session expires in 4 hours</div>
+            </div>
+          </div>
+        )}
+
+        {/* MOD QUEUE */}
+        {!loading && tab==='modqueue' && (
+          <div>
+            {totalFlagged === 0 && <div style={{ textAlign:'center', color:'#444', padding:'48px' }}>No flagged content</div>}
+            {flagged.flaggedPosts?.map(post => (
+              <div key={post.id} style={{ ...sCard, borderLeft:'3px solid #5A1A00' }}>
+                <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:'12px' }}>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontSize:'11px', color:'#B8962E', marginBottom:'4px' }}>POST · {post.kotha_id} · @{post.profiles?.username}</div>
+                    <div style={{ fontWeight:'600', marginBottom:'4px', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{post.title}</div>
+                    <div style={{ color:'#666', fontSize:'12px', overflow:'hidden', display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical' }}>{post.body}</div>
+                  </div>
+                  <div style={{ display:'flex', gap:'6px', flexShrink:0 }}>
+                    <button style={sBtn('green')} onClick={() => handleDismissPost(post.id)}>Dismiss</button>
+                    <button style={sBtn('red')}   onClick={() => handleDeletePost(post.id)}>Delete</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {flagged.flaggedComments?.map(comment => (
+              <div key={comment.id} style={{ ...sCard, borderLeft:'3px solid #3A2A00' }}>
+                <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:'12px' }}>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontSize:'11px', color:'#888', marginBottom:'4px' }}>COMMENT · @{comment.profiles?.username}</div>
+                    <div style={{ color:'#ccc', fontSize:'13px', overflow:'hidden', display:'-webkit-box', WebkitLineClamp:3, WebkitBoxOrient:'vertical' }}>{comment.body}</div>
+                  </div>
+                  <div style={{ display:'flex', gap:'6px', flexShrink:0 }}>
+                    <button style={sBtn('green')} onClick={() => handleDismissComment(comment.id)}>Dismiss</button>
+                    <button style={sBtn('red')}   onClick={() => handleDeleteComment(comment.id)}>Delete</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* POSTS */}
+        {!loading && tab==='posts' && (
+          <div>
+            {posts.map(post => (
+              <div key={post.id} style={{ ...sCard, display:'flex', alignItems:'center', justifyContent:'space-between', gap:'12px' }}>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ fontSize:'11px', color:'#555', marginBottom:'2px' }}>
+                    {post.kotha_id} · @{post.profiles?.username}{post.flagged ? ' · 🚩 flagged' : ''}
+                  </div>
+                  <div style={{ whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', fontSize:'14px' }}>{post.title}</div>
+                </div>
+                <button style={sBtn('red')} onClick={() => handleDeletePost(post.id)}>Delete</button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* USERS */}
+        {!loading && tab==='users' && (
+          <div>
+            <input
+              value={userSearch}
+              onChange={e => setUserSearch(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && load('users')}
+              placeholder="Search username..."
+              style={{ width:'100%', background:'#1A1A1A', border:'1px solid #333', borderRadius:'8px', padding:'10px 14px', color:'#fff', fontSize:'14px', outline:'none', boxSizing:'border-box', marginBottom:'12px' }}
+            />
+            {users.map(u => (
+              <div key={u.id} style={{ ...sCard, borderColor: u.banned_at ? '#3A0000' : '#222' }}>
+                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'12px' }}>
+                  <div>
+                    <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
+                      <span style={{ fontWeight:'600' }}>@{u.username}</span>
+                      {u.is_admin  && <span style={{ fontSize:'10px', background:'#1A1200', color:'#B8962E', padding:'2px 6px', borderRadius:'4px' }}>admin</span>}
+                      {u.banned_at && <span style={{ fontSize:'10px', background:'#3A0000', color:'#FF6B6B', padding:'2px 6px', borderRadius:'4px' }}>banned</span>}
+                    </div>
+                    <div style={{ fontSize:'12px', color:'#555', marginTop:'2px' }}>
+                      {u.posts_count} posts · {u.karma} karma
+                      {u.ban_reason && <span style={{ color:'#FF6B6B', marginLeft:'8px' }}>· {u.ban_reason}</span>}
+                    </div>
+                  </div>
+                  <div style={{ display:'flex', gap:'6px', flexShrink:0 }}>
+                    {!u.is_admin && !u.banned_at && (
+                      <button style={sBtn('gold')} onClick={() => setBanModal({ userId: u.id, username: u.username })}>Ban</button>
+                    )}
+                    {u.banned_at && (
+                      <button style={sBtn('green')} onClick={() => handleUnban(u.id, u.username)}>Unban</button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Ban modal */}
+      {banModal && (
+        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.8)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:200, padding:'24px' }}>
+          <div style={{ background:'#111', border:'1px solid #333', borderRadius:'16px', padding:'28px', width:'100%', maxWidth:'360px' }}>
+            <div style={{ fontWeight:'600', marginBottom:'16px' }}>Ban @{banModal.username}?</div>
+            <input
+              value={banReason}
+              onChange={e => setBanReason(e.target.value)}
+              placeholder="Reason (optional)"
+              style={{ width:'100%', background:'#1A1A1A', border:'1px solid #333', borderRadius:'8px', padding:'10px 14px', color:'#fff', fontSize:'14px', outline:'none', boxSizing:'border-box', marginBottom:'16px' }}
+            />
+            <div style={{ display:'flex', gap:'8px' }}>
+              <button style={{ ...sBtn(), flex:1, padding:'10px' }} onClick={() => setBanModal(null)}>Cancel</button>
+              <button style={{ ...sBtn('red'), flex:1, padding:'10px' }} onClick={handleBan}>Confirm ban</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <div style={{ position:'fixed', bottom:'24px', left:'50%', transform:'translateX(-50%)', background:'#1A1A1A', border:'1px solid #333', borderRadius:'8px', padding:'10px 20px', color:'#fff', fontSize:'13px', zIndex:300, whiteSpace:'nowrap' }}>
+          {toast}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── App ───────────────────────────────────────────────────────────────────────
 export default function App() {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [adminAuthed, setAdminAuthed] = useState(() => !!sessionStorage.getItem('kk_admin_token'));
   const [lang, setLang] = useState("en");
   const [screen, setScreen] = useState("home");
   const [navDir, setNavDir] = useState("none");
@@ -1915,6 +2306,20 @@ export default function App() {
   }, [screen, selectedKotha, selectedKothaCountry, createPostFromKotha, navigate]);
 
   // Auth gate
+  // ── Admin route (/admin) — checked before auth loading spinner ──────────────
+  const isAdminRoute = window.location.pathname === (import.meta.env.VITE_ADMIN_PATH || '/admin');
+  if (isAdminRoute && !authLoading) {
+    if (!user) return <><style>{css}</style><div className="phone"><AuthScreen /></div></>;
+    if (!adminAuthed) return <AdminLoginScreen onSuccess={() => setAdminAuthed(true)} />;
+    return (
+      <AdminScreen onExit={() => {
+        sessionStorage.removeItem('kk_admin_token');
+        setAdminAuthed(false);
+        window.history.pushState({}, '', '/');
+      }} />
+    );
+  }
+
   if (authLoading) {
     return (
       <>
