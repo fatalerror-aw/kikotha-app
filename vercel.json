@@ -1,7 +1,8 @@
 {
   "framework": "vite",
-  "rewrites": [
-    { "source": "/admin", "destination": "/index.html" },
-    { "source": "/admin/(.*)", "destination": "/index.html" }
+  "routes": [
+    { "handle": "filesystem" },
+    { "src": "/admin$", "dest": "/index.html" },
+    { "src": "/admin/(.*)", "dest": "/index.html" }
   ]
 }
