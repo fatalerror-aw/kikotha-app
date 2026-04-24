@@ -1716,7 +1716,9 @@ function OnboardingOverlay({ userId, initialProfile, lang, onComplete }) {
   );
 
   return (
-    <div className="ob-overlay">
+    <>
+      <style>{css}</style>
+      <div className="ob-overlay">
       {/* Step dots */}
       <div className="ob-dots">
         {Array.from({length:TOTAL},(_,i) => (
@@ -1839,6 +1841,7 @@ function OnboardingOverlay({ userId, initialProfile, lang, onComplete }) {
         </div>
       </div>
     </div>
+    </>
   );
 }
 
@@ -2642,6 +2645,8 @@ export default function App() {
     );
   }
 
+  console.log('[App] onboardingComplete =', onboardingComplete, '| user =', !!user, '| authLoading =', authLoading);
+
   // 1. Spinner — auth or profile still loading
   if (authLoading || (user && onboardingComplete === null)) {
     return (
@@ -2659,28 +2664,23 @@ export default function App() {
     return (
       <>
         <style>{css}</style>
-        <div className="phone">
-          <AuthScreen />
-        </div>
+        <div className="phone"><AuthScreen /></div>
       </>
     );
   }
 
-  // 3. Onboarding not complete — block main app entirely until done
+  // 3. Onboarding not confirmed complete → overlay, no main app
   if (onboardingComplete !== true) {
     return (
-      <>
-        <style>{css}</style>
-        <OnboardingOverlay
-          userId={user.id}
-          initialProfile={initialProfile}
-          lang={lang}
-          onComplete={(chosenLang) => {
-            if (chosenLang) setLang(chosenLang);
-            setOnboardingComplete(true);
-          }}
-        />
-      </>
+      <OnboardingOverlay
+        userId={user.id}
+        initialProfile={initialProfile}
+        lang={lang}
+        onComplete={(chosenLang) => {
+          if (chosenLang) setLang(chosenLang);
+          setOnboardingComplete(true);
+        }}
+      />
     );
   }
 
