@@ -1716,6 +1716,12 @@ function OnboardingOverlay({ userId, initialProfile, lang, onComplete }) {
   );
 
   return (
+    <div style={{position:'fixed',inset:0,background:'red',zIndex:9999,display:'flex',alignItems:'center',justifyContent:'center'}}>
+      <h1 style={{color:'white',fontSize:'2rem'}}>ONBOARDING</h1>
+    </div>
+  );
+  // eslint-disable-next-line no-unreachable
+  return (
     <>
       <style>{css}</style>
       <div className="ob-overlay">
