@@ -622,28 +622,31 @@ const css = `
   .settings-link-btn{font-size:11px;padding:4px 10px;border-radius:8px;border:1px solid var(--border2);background:var(--card3);color:var(--text2);cursor:pointer;font-family:var(--font-body);}
 
   /* Onboarding Overlay */
-  .ob-overlay{position:fixed;inset:0;z-index:999;background:var(--bg);display:flex;flex-direction:column;overflow:hidden;}
+  .ob-overlay{position:fixed;inset:0;z-index:999;background:#0A0A0A;display:flex;flex-direction:column;overflow:hidden;}
   .ob-dots{display:flex;justify-content:center;gap:6px;padding:20px 0 0;flex-shrink:0;}
-  .ob-dot{width:8px;height:8px;border-radius:50%;background:var(--muted2);transition:all 0.3s ease;}
-  .ob-dot.active{background:var(--gold);width:24px;border-radius:4px;}
+  .ob-dot{width:8px;height:8px;border-radius:50%;background:#333333;transition:all 0.3s ease;}
+  .ob-dot.active{background:#B8962E;width:24px;border-radius:4px;}
   .ob-body{flex:1;overflow-y:auto;padding:32px 24px 16px;}
   .ob-body::-webkit-scrollbar{display:none;}
   @keyframes obFadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
   .ob-step{opacity:0;transition:opacity 0.18s ease;pointer-events:none;}
   .ob-step.visible{opacity:1;pointer-events:auto;animation:obFadeIn 0.22s ease;}
   .ob-footer{flex-shrink:0;padding:12px 24px 48px;}
-  .ob-next-btn{width:100%;padding:15px;background:var(--gold);color:#0A0A0A;font-size:15px;font-weight:700;border:none;border-radius:14px;cursor:pointer;font-family:var(--font-body);transition:opacity 0.2s;}
+  .ob-next-btn{width:100%;padding:15px;background:#B8962E;color:#0A0A0A;font-size:15px;font-weight:700;border:none;border-radius:14px;cursor:pointer;font-family:'DM Sans',system-ui,sans-serif;transition:opacity 0.2s;}
   .ob-next-btn:disabled{opacity:0.35;cursor:default;}
   .ob-btn-row{display:flex;justify-content:space-between;align-items:center;margin-top:14px;min-height:24px;}
-  .ob-back-btn{background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;font-family:var(--font-bn);padding:0;}
-  .ob-skip{background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;font-family:var(--font-bn);padding:0;}
-  .ob-username-pill{display:inline-block;background:var(--gold-dim);border:1px solid var(--gold-border);color:var(--gold2);font-size:14px;font-weight:600;padding:6px 16px;border-radius:20px;font-family:var(--font-body);margin-bottom:8px;}
+  .ob-back-btn{background:none;border:none;color:#666666;font-size:13px;cursor:pointer;font-family:'Hind Siliguri','DM Sans',system-ui,sans-serif;padding:0;}
+  .ob-skip{background:none;border:none;color:#666666;font-size:12px;cursor:pointer;font-family:'Hind Siliguri','DM Sans',system-ui,sans-serif;padding:0;}
+  .ob-username-pill{display:inline-block;background:#1A1200;border:1px solid #5A3F0A;color:#D4AF5A;font-size:14px;font-weight:600;padding:6px 16px;border-radius:20px;font-family:'DM Sans',system-ui,sans-serif;margin-bottom:8px;}
   .ob-kotha-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
-  .ob-kotha-card{padding:14px 10px;background:var(--card2);border:1.5px solid var(--border);border-radius:var(--radius);text-align:center;cursor:pointer;transition:border-color 0.2s,background 0.2s;position:relative;}
-  .ob-kotha-card.selected{border-color:var(--gold);background:var(--gold-dim);}
-  .ob-check{position:absolute;top:6px;right:8px;color:var(--gold);font-size:13px;font-weight:700;}
-  .ob-lang-card{display:block;width:100%;padding:22px;background:var(--card2);border:1.5px solid var(--border);border-radius:var(--radius);font-size:18px;font-family:var(--font-bn);font-weight:600;color:var(--text2);cursor:pointer;text-align:center;transition:border-color 0.2s,background 0.2s,color 0.2s;margin-bottom:12px;}
-  .ob-lang-card.selected{border-color:var(--gold);background:var(--gold-dim);color:var(--gold2);}
+  .ob-kotha-card{padding:14px 10px;background:#111111;border:1.5px solid #222222;border-radius:16px;text-align:center;cursor:pointer;transition:border-color 0.2s,background 0.2s;position:relative;}
+  .ob-kotha-card.selected{border-color:#B8962E;background:#1A1200;}
+  .ob-check{position:absolute;top:6px;right:8px;color:#B8962E;font-size:13px;font-weight:700;}
+  .ob-lang-card{display:block;width:100%;padding:22px;background:#111111;border:1.5px solid #222222;border-radius:16px;font-size:18px;font-family:'Hind Siliguri','DM Sans',system-ui,sans-serif;font-weight:600;color:#999999;cursor:pointer;text-align:center;transition:border-color 0.2s,background 0.2s,color 0.2s;margin-bottom:12px;}
+  .ob-lang-card.selected{border-color:#B8962E;background:#1A1200;color:#D4AF5A;}
+  .ob-input{width:100%;background:#1A1A1A;border:1px solid #333333;color:#FFFFFF;font-size:14px;font-family:'DM Sans',system-ui,sans-serif;padding:13px 14px;border-radius:12px;outline:none;margin-bottom:10px;}
+  .ob-input::placeholder{color:#444444;}
+  .ob-input:focus{border-color:#555555;}
 `;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -1709,10 +1712,10 @@ function OnboardingOverlay({ userId, initialProfile, lang, onComplete }) {
     || (step === 4 && !selectedLang);
 
   const Heading = ({ children }) => (
-    <div style={{fontFamily:"var(--font-display)",fontSize:28,fontWeight:700,color:"var(--text)",marginBottom:8,lineHeight:1.2}}>{children}</div>
+    <div style={{fontFamily:"'Cormorant Garamond',Georgia,serif",fontSize:28,fontWeight:700,color:"#FFFFFF",marginBottom:8,lineHeight:1.2}}>{children}</div>
   );
   const SubText = ({ children }) => (
-    <div style={{fontSize:13,color:"var(--muted)",fontFamily:"var(--font-bn)",lineHeight:1.75,marginBottom:24}}>{children}</div>
+    <div style={{fontSize:13,color:"#666666",fontFamily:"'Hind Siliguri','DM Sans',system-ui,sans-serif",lineHeight:1.75,marginBottom:24}}>{children}</div>
   );
 
   return (
@@ -1733,11 +1736,11 @@ function OnboardingOverlay({ userId, initialProfile, lang, onComplete }) {
           {/* STEP 1: Welcome */}
           {step===0 && (
             <div style={{textAlign:"center",paddingTop:24}}>
-              <div style={{fontFamily:"var(--font-display)",fontSize:52,fontWeight:700,color:"var(--text)",letterSpacing:"-2px",marginBottom:4}}>Ki Kotha</div>
-              <div style={{fontFamily:"var(--font-bn)",fontSize:22,color:"var(--gold)",marginBottom:36}}>কি কথা</div>
-              <div style={{fontFamily:"var(--font-display)",fontSize:26,fontWeight:700,color:"var(--text)",marginBottom:10}}>{tx.onboardWelcomeTitle}</div>
-              <div style={{fontFamily:"var(--font-bn)",fontSize:15,color:"var(--text2)",marginBottom:20}}>{tx.onboardWelcomeBn}</div>
-              <div style={{fontSize:13,color:"var(--muted)",fontFamily:"var(--font-bn)",lineHeight:1.8}}>{tx.onboardWelcomeSub}</div>
+              <div style={{fontFamily:"'Cormorant Garamond',Georgia,serif",fontSize:52,fontWeight:700,color:"#FFFFFF",letterSpacing:"-2px",marginBottom:4}}>Ki Kotha</div>
+              <div style={{fontFamily:"'Hind Siliguri','DM Sans',system-ui,sans-serif",fontSize:22,color:"#B8962E",marginBottom:36}}>কি কথা</div>
+              <div style={{fontFamily:"'Cormorant Garamond',Georgia,serif",fontSize:26,fontWeight:700,color:"#FFFFFF",marginBottom:10}}>{tx.onboardWelcomeTitle}</div>
+              <div style={{fontFamily:"'Hind Siliguri','DM Sans',system-ui,sans-serif",fontSize:15,color:"#999999",marginBottom:20}}>{tx.onboardWelcomeBn}</div>
+              <div style={{fontSize:13,color:"#666666",fontFamily:"'Hind Siliguri','DM Sans',system-ui,sans-serif",lineHeight:1.8}}>{tx.onboardWelcomeSub}</div>
             </div>
           )}
 
@@ -1747,15 +1750,14 @@ function OnboardingOverlay({ userId, initialProfile, lang, onComplete }) {
               <Heading>{tx.onboardDisplayTitle}</Heading>
               <SubText>{tx.onboardDisplaySub}</SubText>
               <input
-                className="auth-input"
-                style={{marginBottom:6}}
+                className="ob-input"
                 value={displayName}
                 onChange={e => { setDisplayName(e.target.value); setDisplayError(""); }}
                 placeholder={lang==="bn"?"আপনার নাম":"Your name"}
                 maxLength={40}
                 autoFocus
               />
-              {displayError && <div style={{fontSize:12,color:"#E57373",fontFamily:"var(--font-bn)",marginBottom:8}}>{displayError}</div>}
+              {displayError && <div style={{fontSize:12,color:"#E57373",fontFamily:"'Hind Siliguri','DM Sans',system-ui,sans-serif",marginBottom:8}}>{displayError}</div>}
             </>
           )}
 
@@ -1765,18 +1767,17 @@ function OnboardingOverlay({ userId, initialProfile, lang, onComplete }) {
               <Heading>{tx.onboardUsernameTitle}</Heading>
               <div style={{marginBottom:16}}>
                 <span className="ob-username-pill">@{initialProfile?.username || "—"}</span>
-                <div style={{fontSize:12,color:"var(--muted)",fontFamily:"var(--font-bn)",marginBottom:16}}>{tx.onboardUsernameCurrentLabel}</div>
+                <div style={{fontSize:12,color:"#666666",fontFamily:"'Hind Siliguri','DM Sans',system-ui,sans-serif",marginBottom:16}}>{tx.onboardUsernameCurrentLabel}</div>
               </div>
               <input
-                className="auth-input"
-                style={{marginBottom:6}}
+                className="ob-input"
                 value={usernameInput}
                 onChange={e => { setUsernameInput(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g,"").slice(0,20)); setUsernameError(""); }}
                 placeholder={tx.onboardUsernameKeep}
                 maxLength={20}
               />
-              {checkingUn && <div style={{fontSize:11,color:"var(--muted)",fontFamily:"var(--font-bn)"}}>{tx.usernameChecking}</div>}
-              {usernameError && <div style={{fontSize:12,color:"#E57373",fontFamily:"var(--font-bn)"}}>{usernameError}</div>}
+              {checkingUn && <div style={{fontSize:11,color:"#666666",fontFamily:"'Hind Siliguri','DM Sans',system-ui,sans-serif"}}>{tx.usernameChecking}</div>}
+              {usernameError && <div style={{fontSize:12,color:"#E57373",fontFamily:"'Hind Siliguri','DM Sans',system-ui,sans-serif"}}>{usernameError}</div>}
             </>
           )}
 
@@ -1792,13 +1793,13 @@ function OnboardingOverlay({ userId, initialProfile, lang, onComplete }) {
                     <div key={k.id} className={`ob-kotha-card${sel?" selected":""}`} onClick={() => toggleKotha(k.id)}>
                       {sel && <span className="ob-check">✓</span>}
                       <span style={{fontSize:26,display:"block",marginBottom:6}}>{k.icon}</span>
-                      <div style={{fontSize:11,fontWeight:600,color:"var(--text)",fontFamily:"var(--font-bn)"}}>{tx.k[k.id]}</div>
+                      <div style={{fontSize:11,fontWeight:600,color:"#FFFFFF",fontFamily:"'Hind Siliguri','DM Sans',system-ui,sans-serif"}}>{tx.k[k.id]}</div>
                     </div>
                   );
                 })}
               </div>
               {selectedKothas.size < 2 && (
-                <div style={{fontSize:11,color:"var(--muted)",fontFamily:"var(--font-bn)",textAlign:"center",marginBottom:8}}>
+                <div style={{fontSize:11,color:"#666666",fontFamily:"'Hind Siliguri','DM Sans',system-ui,sans-serif",textAlign:"center",marginBottom:8}}>
                   {tx.onboardKothaMore(2 - selectedKothas.size)}
                 </div>
               )}
