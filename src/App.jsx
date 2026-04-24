@@ -2642,9 +2642,7 @@ export default function App() {
     );
   }
 
-  // Show spinner while auth is loading, OR while user is known but profile hasn't loaded yet.
-  // The second condition catches the SIGNED_IN race: onAuthStateChange sets user synchronously
-  // before the async loadProfile resolves, leaving onboardingComplete===null briefly.
+  // 1. Spinner — auth or profile still loading
   if (authLoading || (user && onboardingComplete === null)) {
     return (
       <>
@@ -2655,6 +2653,8 @@ export default function App() {
       </>
     );
   }
+
+  // 2. No user → auth screen
   if (!user) {
     return (
       <>
@@ -2666,8 +2666,8 @@ export default function App() {
     );
   }
 
-  // Onboarding overlay — shown after auth, before main app
-  if (onboardingComplete === false) {
+  // 3. Onboarding not complete — block main app entirely until done
+  if (onboardingComplete !== true) {
     return (
       <>
         <style>{css}</style>
