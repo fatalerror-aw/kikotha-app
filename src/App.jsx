@@ -2510,8 +2510,10 @@ export default function App() {
         localStorage.removeItem("kk_name");
       }
       localStorage.removeItem("kk_email");
+      const onboardVal = prof?.onboarding_complete ?? false;
+      console.log('ONBOARDING CHECK:', prof?.onboarding_complete, '→ showOnboarding:', !onboardVal, '| profile:', prof);
       setInitialProfile(prof);
-      setOnboardingComplete(prof?.onboarding_complete ?? false);
+      setOnboardingComplete(onboardVal);
     };
 
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -2640,7 +2642,10 @@ export default function App() {
     );
   }
 
-  if (authLoading) {
+  // Show spinner while auth is loading, OR while user is known but profile hasn't loaded yet.
+  // The second condition catches the SIGNED_IN race: onAuthStateChange sets user synchronously
+  // before the async loadProfile resolves, leaving onboardingComplete===null briefly.
+  if (authLoading || (user && onboardingComplete === null)) {
     return (
       <>
         <style>{css}</style>
