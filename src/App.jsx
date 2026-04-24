@@ -2490,32 +2490,52 @@ export default function App() {
   }, [user?.id]);
 
   useEffect(() => {
+    // Profile fetch with retry — Supabase DB trigger is async on fresh signup,
+    // so the profiles row may not exist yet when auth first resolves.
+    const loadProfile = async (u) => {
+      const storedName = localStorage.getItem("kk_name");
+      let prof = null;
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const { data } = await supabase.from("profiles")
+          .select("display_name, username, onboarding_complete").eq("id", u.id).maybeSingle();
+        if (data) { prof = data; break; }
+        if (attempt < 4) await new Promise(r => setTimeout(r, 500));
+      }
+      // One-time migration: push localStorage display_name into profile if profile has none
+      if (storedName) {
+        if (prof && !prof.display_name) {
+          await supabase.from("profiles").update({ display_name: storedName }).eq("id", u.id);
+          if (prof) prof.display_name = storedName;
+        }
+        localStorage.removeItem("kk_name");
+      }
+      localStorage.removeItem("kk_email");
+      setInitialProfile(prof);
+      setOnboardingComplete(prof?.onboarding_complete ?? false);
+    };
+
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       const u = session?.user ?? null;
       setUser(u);
       if (u) {
-        // Fetch profile for onboarding check + migration
-        const storedName = localStorage.getItem("kk_name");
-        const { data: prof } = await supabase.from("profiles")
-          .select("display_name, username, onboarding_complete").eq("id", u.id).maybeSingle();
-        // One-time migration: push localStorage display_name into profile if profile has none
-        if (storedName) {
-          if (prof && !prof.display_name) {
-            await supabase.from("profiles").update({ display_name: storedName }).eq("id", u.id);
-            if (prof) prof.display_name = storedName;
-          }
-          localStorage.removeItem("kk_name");
-        }
-        localStorage.removeItem("kk_email");
-        setInitialProfile(prof);
-        setOnboardingComplete(prof?.onboarding_complete ?? false);
+        await loadProfile(u);
       } else {
         setOnboardingComplete(null);
       }
       setAuthLoading(false);
     });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      const u = session?.user ?? null;
+      setUser(u);
+      // SIGNED_IN fires on fresh signup/login (e.g. after email confirmation redirect).
+      // Run profile load with retry so onboarding check works for brand-new accounts.
+      if (event === 'SIGNED_IN' && u) {
+        await loadProfile(u);
+        setAuthLoading(false);
+      } else if (!u) {
+        setOnboardingComplete(null);
+      }
     });
     return () => subscription.unsubscribe();
   }, []);
