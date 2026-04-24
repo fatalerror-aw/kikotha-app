@@ -2648,7 +2648,7 @@ export default function App() {
   console.log('[App] onboardingComplete =', onboardingComplete, '| user =', !!user, '| authLoading =', authLoading);
 
   // 1. Spinner — auth or profile still loading
-  if (authLoading || (user && onboardingComplete === null)) {
+  if (authLoading) {
     return (
       <>
         <style>{css}</style>
