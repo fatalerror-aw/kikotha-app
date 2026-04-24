@@ -113,6 +113,25 @@ const T = {
     chooseCountry: "Choose a destination", signIn: "Sign In", signUp: "Sign Up",
     emailLabel: "Email", passwordLabel: "Password", nameLabel: "Full name",
     createAccount: "Create Account", authTagline: "The global Bangladeshi community",
+    onboardWelcomeTitle: "Welcome to Ki Kotha",
+    onboardWelcomeBn: "কি কথা-তে স্বাগতম",
+    onboardWelcomeSub: "The global home for Bangladeshi voices. Discuss, discover, and connect — wherever you are.",
+    onboardDisplayTitle: "What should we call you?",
+    onboardDisplaySub: "This will be shown on your profile",
+    onboardUsernameTitle: "Your @username",
+    onboardUsernameCurrentLabel: "Your current username",
+    onboardUsernameKeep: "leave blank to keep current",
+    onboardKothaTitle: "Join your first Kothas",
+    onboardKothaSub: "Pick at least 2 to get started",
+    onboardKothaMore: (n) => `Pick ${n} more`,
+    onboardLangTitle: "Your preferred language",
+    onboardNext: "Next →",
+    onboardBack: "← Back",
+    onboardLetsGo: "Let's Go →",
+    onboardSkip: "Skip for now",
+    onboardUsernameTaken: "That username is already taken",
+    onboardUsernameInvalid: "3–20 chars: lowercase letters, numbers, underscores only",
+    onboardDisplayNameError: "Name must be 2–40 characters",
     k: { immigration: "Immigration", fraudwatch: "Fraud Watch", jobscareer: "Jobs & Career", lifeabroad: "Life Abroad", gcccorner: "GCC Corner", canada: "Canada", uk: "United Kingdom", familyvisa: "Family & Visa", students: "Students", bangladeshnews: "Bangladesh News" },
   },
   bn: {
@@ -199,6 +218,25 @@ const T = {
     chooseCountry: "গন্তব্য বেছে নিন", signIn: "সাইন ইন", signUp: "সাইন আপ",
     emailLabel: "ইমেইল", passwordLabel: "পাসওয়ার্ড", nameLabel: "পুরো নাম",
     createAccount: "অ্যাকাউন্ট তৈরি করুন", authTagline: "বিশ্বব্যাপী বাংলাদেশি সম্প্রদায়",
+    onboardWelcomeTitle: "কি কথা-তে স্বাগতম",
+    onboardWelcomeBn: "Welcome to Ki Kotha",
+    onboardWelcomeSub: "বাংলাদেশি কণ্ঠস্বরের বৈশ্বিক ঘর। আলোচনা করুন, আবিষ্কার করুন এবং সংযুক্ত হন — যেখানেই থাকুন।",
+    onboardDisplayTitle: "আপনাকে কীভাবে ডাকব?",
+    onboardDisplaySub: "এটি আপনার প্রোফাইলে দেখানো হবে",
+    onboardUsernameTitle: "আপনার @ইউজারনেম",
+    onboardUsernameCurrentLabel: "আপনার বর্তমান ইউজারনেম",
+    onboardUsernameKeep: "বর্তমান রাখতে ফাঁকা রাখুন",
+    onboardKothaTitle: "প্রথম কোথাগুলোতে যোগ দিন",
+    onboardKothaSub: "শুরু করতে কমপক্ষে ২টি বেছে নিন",
+    onboardKothaMore: (n) => `আরো ${n}টি বেছে নিন`,
+    onboardLangTitle: "আপনার পছন্দের ভাষা",
+    onboardNext: "পরবর্তী →",
+    onboardBack: "← পেছনে",
+    onboardLetsGo: "শুরু করুন →",
+    onboardSkip: "এখনই নয়",
+    onboardUsernameTaken: "এই ইউজারনেম আগে থেকে ব্যবহৃত",
+    onboardUsernameInvalid: "৩–২০ অক্ষর: ছোট হাতের অক্ষর, সংখ্যা, আন্ডারস্কোর",
+    onboardDisplayNameError: "নাম ২–৪০ অক্ষর হতে হবে",
     k: { immigration: "অভিবাসন", fraudwatch: "প্রতারণা সতর্কতা", jobscareer: "চাকরি ও ক্যারিয়ার", lifeabroad: "প্রবাসী জীবন", gcccorner: "জিসিসি কর্নার", canada: "কানাডা", uk: "যুক্তরাজ্য", familyvisa: "পরিবার ও ভিসা", students: "শিক্ষার্থী", bangladeshnews: "বাংলাদেশ সংবাদ" },
   },
 };
@@ -582,6 +620,30 @@ const css = `
   .settings-delete{color:#E57373;}
   .settings-version{text-align:center;padding:20px;font-size:11px;color:var(--muted2);font-family:var(--font-body);}
   .settings-link-btn{font-size:11px;padding:4px 10px;border-radius:8px;border:1px solid var(--border2);background:var(--card3);color:var(--text2);cursor:pointer;font-family:var(--font-body);}
+
+  /* Onboarding Overlay */
+  .ob-overlay{position:fixed;inset:0;z-index:999;background:var(--bg);display:flex;flex-direction:column;overflow:hidden;}
+  .ob-dots{display:flex;justify-content:center;gap:6px;padding:20px 0 0;flex-shrink:0;}
+  .ob-dot{width:8px;height:8px;border-radius:50%;background:var(--muted2);transition:all 0.3s ease;}
+  .ob-dot.active{background:var(--gold);width:24px;border-radius:4px;}
+  .ob-body{flex:1;overflow-y:auto;padding:32px 24px 16px;}
+  .ob-body::-webkit-scrollbar{display:none;}
+  @keyframes obFadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  .ob-step{opacity:0;transition:opacity 0.18s ease;pointer-events:none;}
+  .ob-step.visible{opacity:1;pointer-events:auto;animation:obFadeIn 0.22s ease;}
+  .ob-footer{flex-shrink:0;padding:12px 24px 48px;}
+  .ob-next-btn{width:100%;padding:15px;background:var(--gold);color:#0A0A0A;font-size:15px;font-weight:700;border:none;border-radius:14px;cursor:pointer;font-family:var(--font-body);transition:opacity 0.2s;}
+  .ob-next-btn:disabled{opacity:0.35;cursor:default;}
+  .ob-btn-row{display:flex;justify-content:space-between;align-items:center;margin-top:14px;min-height:24px;}
+  .ob-back-btn{background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;font-family:var(--font-bn);padding:0;}
+  .ob-skip{background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;font-family:var(--font-bn);padding:0;}
+  .ob-username-pill{display:inline-block;background:var(--gold-dim);border:1px solid var(--gold-border);color:var(--gold2);font-size:14px;font-weight:600;padding:6px 16px;border-radius:20px;font-family:var(--font-body);margin-bottom:8px;}
+  .ob-kotha-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+  .ob-kotha-card{padding:14px 10px;background:var(--card2);border:1.5px solid var(--border);border-radius:var(--radius);text-align:center;cursor:pointer;transition:border-color 0.2s,background 0.2s;position:relative;}
+  .ob-kotha-card.selected{border-color:var(--gold);background:var(--gold-dim);}
+  .ob-check{position:absolute;top:6px;right:8px;color:var(--gold);font-size:13px;font-weight:700;}
+  .ob-lang-card{display:block;width:100%;padding:22px;background:var(--card2);border:1.5px solid var(--border);border-radius:var(--radius);font-size:18px;font-family:var(--font-bn);font-weight:600;color:var(--text2);cursor:pointer;text-align:center;transition:border-color 0.2s,background 0.2s,color 0.2s;margin-bottom:12px;}
+  .ob-lang-card.selected{border-color:var(--gold);background:var(--gold-dim);color:var(--gold2);}
 `;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -1550,6 +1612,236 @@ function AppSettingsScreen({ tx, lang }) {
 }
 
 
+// ── OnboardingOverlay (first-login, 5-step) ───────────────────────────────────
+function OnboardingOverlay({ userId, initialProfile, lang, onComplete }) {
+  const [step, setStep] = useState(0);
+  const [fadeVisible, setFadeVisible] = useState(true);
+  // Step 2 — display name
+  const [displayName, setDisplayName] = useState(initialProfile?.display_name || "");
+  const [displayError, setDisplayError] = useState("");
+  // Step 3 — username
+  const [usernameInput, setUsernameInput] = useState("");
+  const [usernameError, setUsernameError] = useState("");
+  const [checkingUn, setCheckingUn] = useState(false);
+  // Step 4 — kothas
+  const [selectedKothas, setSelectedKothas] = useState(new Set());
+  // Step 5 — language
+  const [selectedLang, setSelectedLang] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const TOTAL = 5;
+  const tx = T[lang] || T.en;
+
+  const goStep = (s) => {
+    setFadeVisible(false);
+    setTimeout(() => { setStep(s); setFadeVisible(true); }, 180);
+  };
+
+  const toggleKotha = (id) => setSelectedKothas(prev => {
+    const n = new Set(prev);
+    n.has(id) ? n.delete(id) : n.add(id);
+    return n;
+  });
+
+  const handleSkip = async () => {
+    setSaving(true);
+    await supabase.from("profiles").update({ onboarding_complete: true }).eq("id", userId);
+    setSaving(false);
+    onComplete(null);
+  };
+
+  const handleNext = async () => {
+    if (saving || checkingUn) return;
+
+    if (step === 0) { goStep(1); return; }
+
+    if (step === 1) {
+      const n = displayName.trim().replace(/<[^>]*>/g, "");
+      if (n.length < 2 || n.length > 40) { setDisplayError(tx.onboardDisplayNameError); return; }
+      setSaving(true);
+      await supabase.from("profiles").update({ display_name: n }).eq("id", userId);
+      setSaving(false);
+      setDisplayError("");
+      goStep(2);
+      return;
+    }
+
+    if (step === 2) {
+      const u = usernameInput.trim();
+      if (u) {
+        if (!/^[a-z0-9_]{3,20}$/.test(u)) { setUsernameError(tx.onboardUsernameInvalid); return; }
+        setCheckingUn(true);
+        const { data: existing } = await supabase.from("profiles")
+          .select("id").eq("username", u).neq("id", userId).maybeSingle();
+        setCheckingUn(false);
+        if (existing) { setUsernameError(tx.onboardUsernameTaken); return; }
+        setSaving(true);
+        await supabase.from("profiles").update({ username: u }).eq("id", userId);
+        setSaving(false);
+      }
+      setUsernameError("");
+      goStep(3);
+      return;
+    }
+
+    if (step === 3) {
+      if (selectedKothas.size < 2) return;
+      setSaving(true);
+      const rows = [...selectedKothas].map(k => ({ user_id: userId, kotha_id: k, role: "member" }));
+      await supabase.from("memberships").upsert(rows, { onConflict: "user_id,kotha_id" });
+      setSaving(false);
+      goStep(4);
+      return;
+    }
+
+    if (step === 4) {
+      setSaving(true);
+      await supabase.from("profiles").update({
+        lang_pref: selectedLang || "en",
+        onboarding_complete: true,
+      }).eq("id", userId);
+      setSaving(false);
+      onComplete(selectedLang || "en");
+    }
+  };
+
+  const nextDisabled = saving || checkingUn
+    || (step === 3 && selectedKothas.size < 2)
+    || (step === 4 && !selectedLang);
+
+  const Heading = ({ children }) => (
+    <div style={{fontFamily:"var(--font-display)",fontSize:28,fontWeight:700,color:"var(--text)",marginBottom:8,lineHeight:1.2}}>{children}</div>
+  );
+  const SubText = ({ children }) => (
+    <div style={{fontSize:13,color:"var(--muted)",fontFamily:"var(--font-bn)",lineHeight:1.75,marginBottom:24}}>{children}</div>
+  );
+
+  return (
+    <div className="ob-overlay">
+      {/* Step dots */}
+      <div className="ob-dots">
+        {Array.from({length:TOTAL},(_,i) => (
+          <div key={i} className={`ob-dot${i===step?" active":""}`} />
+        ))}
+      </div>
+
+      {/* Body */}
+      <div className="ob-body">
+        <div className={`ob-step${fadeVisible?" visible":""}`}>
+
+          {/* STEP 1: Welcome */}
+          {step===0 && (
+            <div style={{textAlign:"center",paddingTop:24}}>
+              <div style={{fontFamily:"var(--font-display)",fontSize:52,fontWeight:700,color:"var(--text)",letterSpacing:"-2px",marginBottom:4}}>Ki Kotha</div>
+              <div style={{fontFamily:"var(--font-bn)",fontSize:22,color:"var(--gold)",marginBottom:36}}>কি কথা</div>
+              <div style={{fontFamily:"var(--font-display)",fontSize:26,fontWeight:700,color:"var(--text)",marginBottom:10}}>{tx.onboardWelcomeTitle}</div>
+              <div style={{fontFamily:"var(--font-bn)",fontSize:15,color:"var(--text2)",marginBottom:20}}>{tx.onboardWelcomeBn}</div>
+              <div style={{fontSize:13,color:"var(--muted)",fontFamily:"var(--font-bn)",lineHeight:1.8}}>{tx.onboardWelcomeSub}</div>
+            </div>
+          )}
+
+          {/* STEP 2: Display Name */}
+          {step===1 && (
+            <>
+              <Heading>{tx.onboardDisplayTitle}</Heading>
+              <SubText>{tx.onboardDisplaySub}</SubText>
+              <input
+                className="auth-input"
+                style={{marginBottom:6}}
+                value={displayName}
+                onChange={e => { setDisplayName(e.target.value); setDisplayError(""); }}
+                placeholder={lang==="bn"?"আপনার নাম":"Your name"}
+                maxLength={40}
+                autoFocus
+              />
+              {displayError && <div style={{fontSize:12,color:"#E57373",fontFamily:"var(--font-bn)",marginBottom:8}}>{displayError}</div>}
+            </>
+          )}
+
+          {/* STEP 3: Username */}
+          {step===2 && (
+            <>
+              <Heading>{tx.onboardUsernameTitle}</Heading>
+              <div style={{marginBottom:16}}>
+                <span className="ob-username-pill">@{initialProfile?.username || "—"}</span>
+                <div style={{fontSize:12,color:"var(--muted)",fontFamily:"var(--font-bn)",marginBottom:16}}>{tx.onboardUsernameCurrentLabel}</div>
+              </div>
+              <input
+                className="auth-input"
+                style={{marginBottom:6}}
+                value={usernameInput}
+                onChange={e => { setUsernameInput(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g,"").slice(0,20)); setUsernameError(""); }}
+                placeholder={tx.onboardUsernameKeep}
+                maxLength={20}
+              />
+              {checkingUn && <div style={{fontSize:11,color:"var(--muted)",fontFamily:"var(--font-bn)"}}>{tx.usernameChecking}</div>}
+              {usernameError && <div style={{fontSize:12,color:"#E57373",fontFamily:"var(--font-bn)"}}>{usernameError}</div>}
+            </>
+          )}
+
+          {/* STEP 4: Join Kothas */}
+          {step===3 && (
+            <>
+              <Heading>{tx.onboardKothaTitle}</Heading>
+              <SubText>{tx.onboardKothaSub}</SubText>
+              <div className="ob-kotha-grid">
+                {KOTHAS.map(k => {
+                  const sel = selectedKothas.has(k.id);
+                  return (
+                    <div key={k.id} className={`ob-kotha-card${sel?" selected":""}`} onClick={() => toggleKotha(k.id)}>
+                      {sel && <span className="ob-check">✓</span>}
+                      <span style={{fontSize:26,display:"block",marginBottom:6}}>{k.icon}</span>
+                      <div style={{fontSize:11,fontWeight:600,color:"var(--text)",fontFamily:"var(--font-bn)"}}>{tx.k[k.id]}</div>
+                    </div>
+                  );
+                })}
+              </div>
+              {selectedKothas.size < 2 && (
+                <div style={{fontSize:11,color:"var(--muted)",fontFamily:"var(--font-bn)",textAlign:"center",marginBottom:8}}>
+                  {tx.onboardKothaMore(2 - selectedKothas.size)}
+                </div>
+              )}
+            </>
+          )}
+
+          {/* STEP 5: Language */}
+          {step===4 && (
+            <>
+              <Heading>{tx.onboardLangTitle}</Heading>
+              <div style={{height:20}} />
+              {[["🇬🇧 English","en"],["বাংলা 🇧🇩","bn"]].map(([label,code]) => (
+                <button
+                  key={code}
+                  className={`ob-lang-card${selectedLang===code?" selected":""}`}
+                  onClick={() => setSelectedLang(code)}
+                >
+                  {label}
+                </button>
+              ))}
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="ob-footer">
+        <button className="ob-next-btn" onClick={handleNext} disabled={nextDisabled}>
+          {saving || checkingUn ? "…" : step===4 ? tx.onboardLetsGo : tx.onboardNext}
+        </button>
+        <div className="ob-btn-row">
+          {step > 0
+            ? <button className="ob-back-btn" onClick={() => !saving && goStep(step-1)} disabled={saving}>{tx.onboardBack}</button>
+            : <span />
+          }
+          {step > 0
+            ? <button className="ob-skip" onClick={handleSkip} disabled={saving}>{tx.onboardSkip}</button>
+            : <span />
+          }
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function OnboardingScreen({ tx, lang, setLang, onboardStep, setOnboardStep, navigate, selectedCountry, setSelectedCountry }) {
   return (
     <div className="onboard fade-in">
@@ -2184,6 +2476,8 @@ export default function App() {
   const [feedbackGiven, setFeedbackGiven] = useState(false);
   const [savedPosts, setSavedPosts] = useState([]);
   const [createPostFromKotha, setCreatePostFromKotha] = useState(null);
+  const [onboardingComplete, setOnboardingComplete] = useState(null); // null=loading, false=show overlay, true=done
+  const [initialProfile, setInitialProfile] = useState(null);
   const topRef = useRef(null);
   const tx = T[lang];
   const { memberships, memberKothaIds } = useMemberships(user?.id);
@@ -2200,17 +2494,23 @@ export default function App() {
       const u = session?.user ?? null;
       setUser(u);
       if (u) {
-        // One-time migration: push localStorage display_name into profile if profile has none
+        // Fetch profile for onboarding check + migration
         const storedName = localStorage.getItem("kk_name");
+        const { data: prof } = await supabase.from("profiles")
+          .select("display_name, username, onboarding_complete").eq("id", u.id).maybeSingle();
+        // One-time migration: push localStorage display_name into profile if profile has none
         if (storedName) {
-          const { data: prof } = await supabase.from("profiles")
-            .select("display_name").eq("id", u.id).maybeSingle();
           if (prof && !prof.display_name) {
             await supabase.from("profiles").update({ display_name: storedName }).eq("id", u.id);
+            if (prof) prof.display_name = storedName;
           }
           localStorage.removeItem("kk_name");
         }
         localStorage.removeItem("kk_email");
+        setInitialProfile(prof);
+        setOnboardingComplete(prof?.onboarding_complete ?? false);
+      } else {
+        setOnboardingComplete(null);
       }
       setAuthLoading(false);
     });
@@ -2337,6 +2637,24 @@ export default function App() {
         <div className="phone">
           <AuthScreen />
         </div>
+      </>
+    );
+  }
+
+  // Onboarding overlay — shown after auth, before main app
+  if (onboardingComplete === false) {
+    return (
+      <>
+        <style>{css}</style>
+        <OnboardingOverlay
+          userId={user.id}
+          initialProfile={initialProfile}
+          lang={lang}
+          onComplete={(chosenLang) => {
+            if (chosenLang) setLang(chosenLang);
+            setOnboardingComplete(true);
+          }}
+        />
       </>
     );
   }
